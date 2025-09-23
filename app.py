@@ -1,7 +1,6 @@
 """
-HIS220: Michigan History - Interactive Educational App
-A comprehensive course on Michigan's First Residents and Early Colonial Period
-CognitiveCloud.ai Learning Platform
+HIS220: Michigan History - Single 100-Question Quiz
+Maximum XP Challenge - CognitiveCloud.ai Learning Platform
 """
 
 import streamlit as st
@@ -9,981 +8,987 @@ import time
 import json
 import random
 from datetime import datetime
-from typing import List, Dict, Optional
 
 # Configure page
 st.set_page_config(
-    page_title="HIS220: Michigan History",
+    page_title="HIS220: 100-Question Challenge",
     page_icon="🏛️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # Initialize session state
-if 'current_slide' not in st.session_state:
-    st.session_state.current_slide = 0
-if 'student_responses' not in st.session_state:
-    st.session_state.student_responses = {}
-if 'quiz_scores' not in st.session_state:
-    st.session_state.quiz_scores = {}
+if 'quiz_started' not in st.session_state:
+    st.session_state.quiz_started = False
+if 'answers' not in st.session_state:
+    st.session_state.answers = {}
 if 'total_xp' not in st.session_state:
     st.session_state.total_xp = 0
 if 'achievements' not in st.session_state:
     st.session_state.achievements = []
-if 'current_streak' not in st.session_state:
-    st.session_state.current_streak = 0
-if 'completed_modules' not in st.session_state:
-    st.session_state.completed_modules = set()
+if 'quiz_completed' not in st.session_state:
+    st.session_state.quiz_completed = False
+if 'final_score' not in st.session_state:
+    st.session_state.final_score = 0
 
-# Course content slides
-SLIDES = [
+# Complete 100 Questions in Sequential Order
+QUESTIONS = [
+    # Questions 1-25: Early Settlement and Native Americans
     {
-        "id": "welcome",
-        "title": "HIS220: Michigan History",
-        "content": """
-        # 🏛️ HIS220: Michigan History
-        ## CognitiveCloud.ai Learning Platform
-        
-        ### Course Overview: Michigan's First Residents and Colonial Period
-        
-        **Learning Objectives:**
-        - 🔍 **Understand** Michigan's pre-European indigenous populations
-        - 📚 **Explore** early European contact and colonial administration
-        - 🤝 **Analyze** Native American-European relations and conflicts
-        - ⚖️ **Evaluate** the transition from French to British to American control
-        
-        > *"To understand Michigan's present, we must first understand its past."*
-        
-        **Course Modules:**
-        1. 🏕️ **Indigenous Peoples** - Michigan's First Residents
-        2. 🇬🇧 **British Colonial Period** - Imperial Control and Conflict
-        3. 🇺🇸 **American Transition** - Revolutionary Changes
-        
-        **XP System:** Earn points for participation, quiz completion, and thoughtful responses!
-        """,
-        "xp_reward": 50
+        "question": "How did the transition from French to British rule occur?",
+        "options": ["Peacefully through treaty", "Through military conquest and negotiation", "French abandoned the region", "Native Americans chose British rule"],
+        "correct": 1,
+        "explanation": "The transition involved military conquest during the French and Indian War followed by negotiations."
     },
     {
-        "id": "indigenous_peoples",
-        "title": "Module 1: Michigan's First Residents",
-        "content": """
-        # 🏕️ Module 1: Michigan's First Residents
-        
-        ## The Land Before Europeans
-        
-        ### Key Concepts:
-        
-        **🌍 Pre-Contact Population**
-        - Michigan was inhabited by indigenous peoples for thousands of years
-        - Multiple distinct tribal groups with complex societies
-        - Sophisticated understanding of the land and its resources
-        
-        **🛶 Major Tribal Groups:**
-        - **Ojibwe (Chippewa)** - Northern regions, Great Lakes traders
-        - **Ottawa (Odawa)** - Western Michigan, skilled negotiators  
-        - **Potawatomi** - Southern Michigan, agricultural communities
-        - **Three Fires Confederacy** - Alliance of these three nations
-        
-        **📅 Archaeological Evidence:**
-        - Human presence dating back 10,000+ years
-        - Evidence of complex trade networks
-        - Seasonal migration patterns following resources
-        - Advanced agricultural techniques
-        
-        ## The Misnomer Problem
-        
-        **Why "Indians"?**
-        Columbus believed he had reached the East Indies, calling inhabitants "Indians." This geographical error persisted for centuries, despite growing awareness of the mistake.
-        
-        **Recent Archaeological Discoveries:**
-        - Previous estimates of 20,000-40,000 years of human presence
-        - New evidence suggests even earlier settlement
-        - Challenges traditional migration theories
-        
-        ### 💭 Discussion Point:
-        How do you think the persistence of inaccurate terminology affects our understanding of history?
-        """,
-        "xp_reward": 75,
-        "interactive": True,
-        "discussion_prompt": "How do you think the persistence of inaccurate terminology like 'Indians' affects our understanding of Native American history and culture?"
-    },
-    {
-        "id": "european_contact",
-        "title": "Early European Contact",
-        "content": """
-        # ⛵ Early European Contact
-        
-        ## First Encounters
-        
-        ### French Exploration:
-        - **Jacques Marquette** - Jesuit missionary, established missions
-        - **Robert de La Salle** - Explorer, claimed territory for France
-        - **Antoine de la Mothe Cadillac** - Founded Detroit (1701)
-        
-        ### Impact on Indigenous Peoples:
-        **🔄 Trade Relationships:**
-        - Fur trade became central to regional economy
-        - Native Americans as essential partners and intermediaries
-        - European goods integrated into indigenous lifestyles
-        
-        **⚔️ Conflicts and Alliances:**
-        - Competition between European powers
-        - Native American groups forced to choose sides
-        - Traditional territories and relationships disrupted
-        
-        **🦠 Demographic Impact:**
-        - Disease epidemics devastated indigenous populations
-        - Smallpox, measles, and other Old World diseases
-        - Population decline estimated at 90% in some areas
-        
-        ## Archaeological Revolution
-        
-        **Changing Timelines:**
-        Traditional view: Humans arrived ~12,000 years ago via Bering land bridge
-        
-        **New Evidence Suggests:**
-        - Much earlier human presence (20,000-40,000+ years)
-        - Multiple migration routes possible
-        - More complex settlement patterns
-        
-        This challenges our fundamental assumptions about when and how the Americas were first populated.
-        """,
-        "xp_reward": 100
-    },
-    {
-        "id": "british_control",
-        "title": "Module 2: British Colonial Period",
-        "content": """
-        # 🇬🇧 Module 2: British Colonial Period (1760-1783)
-        
-        ## Transition from French Rule
-        
-        ### Treaty of Paris (1763):
-        - Ended French and Indian War/Seven Years' War
-        - France ceded New France to Britain
-        - Michigan became part of British North America
-        
-        ### British Administration:
-        **🏛️ Colonial Structure:**
-        - Military governors appointed to key forts
-        - Detroit became regional administrative center
-        - Gradual establishment of civil government
-        
-        **📋 Key Policies:**
-        - Royal Proclamation of 1763 - limited westward expansion
-        - Regulation of Indian trade
-        - Maintenance of French legal traditions initially
-        
-        ## Major Conflicts and Negotiations
-        
-        ### Bradstreet's Expedition (1764):
-        - **Colonel John Bradstreet** reached Detroit August 26, 1764
-        - Western tribes assembled and acknowledged British sovereignty
-        - Promised to end warfare against British settlers
-        
-        ### Pontiac's Resistance:
-        - **Chief Pontiac** led multi-tribal confederation
-        - Coordinated attacks on British forts (1763-1766)
-        - Siege of Detroit lasted several months
-        - Eventually negotiated peace at Oswego (July 1766)
-        
-        ### Peace Negotiations:
-        - **Sir William Johnson** - British Superintendent of Indian Affairs
-        - Skilled at diplomacy with Native American leaders
-        - Established framework for ongoing relations
-        """,
-        "xp_reward": 125,
-        "interactive": True,
-        "discussion_prompt": "Why do you think Pontiac's resistance was ultimately unsuccessful? What factors led to the eventual peace agreements?"
-    },
-    {
-        "id": "revolutionary_transition",
-        "title": "Module 3: Revolutionary Period Transition",
-        "content": """
-        # 🇺🇸 Module 3: Revolutionary Period and American Control
-        
-        ## The American Revolution's Impact on Michigan
-        
-        ### British Loyalist Stronghold:
-        - Michigan remained under British control throughout Revolution
-        - Detroit served as base for British-allied Native American raids
-        - Many settlers remained loyal to British Crown
-        
-        ### Key Figures in Transition:
-        
-        **🎖️ Henry Gladwin:**
-        - British commander during Pontiac's siege
-        - Later lived as country gentleman until death
-        - Represented old guard of British military leadership
-        
-        **⚔️ Captain William Howard:**
-        - Worked to save British garrison during uprising  
-        - Later fought with British against American Revolution
-        - Eventually reconciled to American control
-        - Known as "father of the lake region" in 19th century
-        
-        **🏛️ Charles Langlade:**
-        - Mixed French-Ottawa heritage
-        - Key intermediary between cultures
-        - Continued influence into American period
-        
-        ## Post-Revolutionary Challenges
-        
-        ### Treaty of Paris (1783):
-        - Britain ceded Old Northwest to United States
-        - But British forces remained in Great Lakes forts
-        - Created period of uncertain sovereignty
-        
-        ### Continued British Presence:
-        - British didn't evacuate until Jay's Treaty (1796)  
-        - Maintained trade relationships with Native Americans
-        - Competed with American expansion efforts
-        
-        ### Native American Position:
-        - Caught between British and American interests
-        - Some leaders like Pontiac murdered (1769 in St. Louis)
-        - Traditional territories increasingly pressured
-        - Had to navigate changing political landscape
-        
-        **🤔 Historical Question:**
-        How did the complex relationships between British, American, and Native American interests shape Michigan's early development?
-        """,
-        "xp_reward": 150,
-        "interactive": True,
-        "discussion_prompt": "How did the overlapping claims of British, American, and Native American groups create challenges for Michigan's development after the Revolution?"
-    },
-    {
-        "id": "synthesis",
-        "title": "Course Synthesis and Reflection",
-        "content": """
-        # 🎯 Course Synthesis: Understanding Michigan's Foundations
-        
-        ## Major Themes Across Periods:
-        
-        ### 🔄 Cultural Contact and Conflict:
-        - **Indigenous Sophistication:** Complex societies existed long before European contact
-        - **European Disruption:** Disease, warfare, and territorial pressure
-        - **Adaptation and Resistance:** Native American responses to changing circumstances
-        
-        ### 🏛️ Imperial Competition:
-        - **French Colonial Model:** Trade partnerships, missionary activity
-        - **British Administrative Approach:** Military control, formal treaties
-        - **American Expansion:** Territorial acquisition, settler colonialism
-        
-        ### 🌊 Geographic Significance:
-        - **Great Lakes:** Highway for trade and military movement
-        - **Strategic Locations:** Detroit, Mackinac Island, other key sites
-        - **Natural Resources:** Furs, timber, agricultural potential
-        
-        ## Continuing Questions:
-        
-        **🤔 Historical Interpretation:**
-        - How do we balance different cultural perspectives on the same events?
-        - What sources do we privilege in understanding the past?
-        - How do archaeological discoveries change our understanding?
-        
-        **📊 Evidence and Analysis:**
-        - What can material culture tell us that written sources cannot?
-        - How do we account for bias in historical sources?
-        - Why do historical interpretations change over time?
-        
-        ## Looking Forward:
-        
-        **🚀 Next in Michigan History:**
-        - Territorial period and path to statehood
-        - Economic development and industrialization  
-        - Immigration and cultural diversity
-        - Modern challenges and opportunities
-        
-        ### 📝 Final Reflection Assignment:
-        Choose one of the three major periods we studied (Indigenous, British, American transition) and write a 500-word reflection on how that period continues to influence modern Michigan.
-        
-        **Consider:**
-        - What legacies remain visible today?
-        - How do modern communities remember this period?
-        - What lessons can we learn for contemporary challenges?
-        """,
-        "xp_reward": 200
+        "question": "What long-term impacts did British control have on Michigan's development?",
+        "options": ["No lasting impact", "Established administrative and legal foundations", "Only military influence", "Reversed French policies entirely"],
+        "correct": 1,
+        "explanation": "British control established important administrative, legal, and territorial foundations for future development."
     }
 ]
 
-# Comprehensive quiz data covering all 100 questions
-QUIZ_DATA = {
-    "indigenous_peoples_quiz": {
-        "title": "Michigan's First Residents Quiz",
-        "questions": [
-            {
-                "question": "What was the land that became Michigan inhabited by before Europeans arrived?",
-                "options": ["Empty wilderness", "Various Native American peoples", "French settlers", "Spanish explorers"],
-                "correct": 1,
-                "explanation": "Michigan was inhabited by various indigenous peoples for thousands of years before European contact."
-            },
-            {
-                "question": "Why did Europeans initially call Native Americans 'Indians'?",
-                "options": ["It was their actual name", "Columbus thought he reached the East Indies", "It was a Spanish word", "They called themselves that"],
-                "correct": 1,
-                "explanation": "Columbus mistakenly believed he had reached the East Indies, leading to the persistent misnomer 'Indians.'"
-            },
-            {
-                "question": "What has been the most common assumption about how people originally came to the Americas?",
-                "options": ["By boat across the Atlantic", "Via a land bridge from Asia", "From South America northward", "They evolved there"],
-                "correct": 1,
-                "explanation": "The traditional theory suggests people crossed a land bridge (Beringia) from Asia during ice ages."
-            },
-            {
-                "question": "According to recent archaeological discoveries, how long might humans have been in the Americas?",
-                "options": ["5,000 years", "12,000 years", "20,000-40,000 years", "100,000 years"],
-                "correct": 2,
-                "explanation": "New discoveries suggest much earlier human presence than previously assumed, possibly 20,000-40,000 years or more."
-            },
-            {
-                "question": "What geographical feature supposedly connected Asia to the Americas?",
-                "options": ["An ice sheet", "A land bridge", "A chain of islands", "A shallow sea"],
-                "correct": 1,
-                "explanation": "The Bering land bridge (Beringia) connected Asia and North America during periods of lower sea level."
-            }
-        ]
-    },
-    "british_colonial_quiz": {
-        "title": "British Colonial Period Quiz",
-        "questions": [
-            {
-                "question": "Under whose flag did British control of Michigan occur?",
-                "options": ["King George II", "King George III", "Queen Anne", "King William"],
-                "correct": 1,
-                "explanation": "British control of Michigan occurred under King George III during and after the French and Indian War."
-            },
-            {
-                "question": "Who was the British commander mentioned as reaching Detroit in 1764?",
-                "options": ["Colonel Bouquet", "General Amherst", "Colonel Bradstreet", "Major Gladwin"],
-                "correct": 2,
-                "explanation": "Colonel John Bradstreet reached Detroit on August 26, 1764, as part of British efforts to secure the region."
-            },
-            {
-                "question": "What did the assembled western tribes acknowledge in 1764?",
-                "options": ["French sovereignty", "Spanish rule", "The sovereignty of King George", "Independence"],
-                "correct": 2,
-                "explanation": "Western tribes assembled and acknowledged the sovereignty of King George III as part of peace negotiations."
-            },
-            {
-                "question": "Who presided over the peace arrangements with Native Americans?",
-                "options": ["Colonel Bouquet", "Sir William Johnson", "General Gage", "Colonel Bradstreet"],
-                "correct": 1,
-                "explanation": "Sir William Johnson, British Superintendent of Indian Affairs, presided over important peace arrangements."
-            },
-            {
-                "question": "Where did Johnson put the finishing touches on peace arrangements in July 1766?",
-                "options": ["Detroit", "Fort Pitt", "Oswego, New York", "Quebec"],
-                "correct": 2,
-                "explanation": "The final peace council was held at Oswego, New York in July 1766."
-            }
-        ]
-    },
-    "revolutionary_period_quiz": {
-        "title": "Revolutionary Period and Transition Quiz",
-        "questions": [
-            {
-                "question": "What happened to Pontiac in the spring of 1769?",
-                "options": ["He died of disease", "He was murdered", "He moved west", "He became a British ally"],
-                "correct": 1,
-                "explanation": "Pontiac was murdered in 1769, ending the life of this significant Native American leader."
-            },
-            {
-                "question": "Where was Pontiac murdered and buried?",
-                "options": ["Detroit", "St. Louis", "Chicago", "Green Bay"],
-                "correct": 1,
-                "explanation": "Pontiac was murdered and buried in St. Louis (then under Spanish control)."
-            },
-            {
-                "question": "Who was known as the 'father of the lake region' in the nineteenth century?",
-                "options": ["Pontiac", "Charles Langlade", "William Howard", "Henry Gladwin"],
-                "correct": 2,
-                "explanation": "William Howard became known as the 'father of the lake region' for his long service and influence."
-            },
-            {
-                "question": "What did Captain William Howard do before the Indian uprising?",
-                "options": ["Served as a trader", "Made a plan to save the garrison", "Worked as a missionary", "Lived as a farmer"],
-                "correct": 1,
-                "explanation": "Howard had made plans before the uprising that helped him respond effectively to save the British garrison."
-            },
-            {
-                "question": "During which conflict did Howard fight with the British against Americans?",
-                "options": ["French and Indian War", "Pontiac's Rebellion", "American Revolution", "War of 1812"],
-                "correct": 2,
-                "explanation": "Howard fought with the British during the American Revolution before eventually being reconciled to American control."
-            }
-        ]
-    },
-    "comprehensive_final": {
-        "title": "Comprehensive Final Assessment",
-        "questions": [
-            {
-                "question": "Which three major powers controlled Michigan during the periods we studied?",
-                "options": ["Spanish, British, American", "French, British, American", "Dutch, French, British", "British, American, Canadian"],
-                "correct": 1,
-                "explanation": "Michigan was controlled successively by French, British, and American powers during the colonial and early national periods."
-            },
-            {
-                "question": "What was the primary economic activity that connected Native Americans to European colonial systems?",
-                "options": ["Agriculture", "Mining", "Fur trading", "Fishing"],
-                "correct": 2,
-                "explanation": "The fur trade was the primary economic connection between Native Americans and European colonizers."
-            },
-            {
-                "question": "Which treaty ended French control of Michigan?",
-                "options": ["Treaty of Paris (1763)", "Treaty of Utrecht", "Jay's Treaty", "Treaty of Ghent"],
-                "correct": 0,
-                "explanation": "The Treaty of Paris (1763) ended the French and Indian War and transferred French territories to Britain."
-            },
-            {
-                "question": "What was the significance of Detroit throughout these periods?",
-                "options": ["It was the largest city", "It was a strategic military and trading center", "It was the colonial capital", "It was the main port"],
-                "correct": 1,
-                "explanation": "Detroit's location made it a crucial strategic military and trading center throughout the colonial period."
-            },
-            {
-                "question": "How did the American Revolution affect Michigan?",
-                "options": ["It gained immediate independence", "It remained under British control during the war", "It was abandoned", "It became Spanish territory"],
-                "correct": 1,
-                "explanation": "Michigan remained under British control throughout the American Revolution, only transferring to American control later."
-            }
-        ]
-    }
-}
-
-# XP and Achievement System
+# Maximum XP Achievement System
 def award_xp(amount: int, reason: str = ""):
-    """Award XP and check for achievements"""
+    """Award maximum XP with spectacular celebrations"""
     st.session_state.total_xp += amount
     
-    # Check for level-based achievements
-    if st.session_state.total_xp >= 1000 and "History Master" not in st.session_state.achievements:
-        st.session_state.achievements.append("History Master")
-        st.balloons()
-        st.success("🏆 Achievement Unlocked: History Master! (1000+ XP)")
+    # Milestone achievements with increasing rewards
+    milestones = [
+        (500, "Rising Scholar"),
+        (1000, "History Enthusiast"),
+        (1500, "Michigan Expert"),
+        (2000, "Colonial Period Master"),
+        (2500, "Historical Analyst"),
+        (3000, "ULTIMATE MICHIGAN HISTORY CHAMPION")
+    ]
     
-    elif st.session_state.total_xp >= 500 and "Scholar" not in st.session_state.achievements:
-        st.session_state.achievements.append("Scholar")
-        st.success("🎓 Achievement Unlocked: Scholar! (500+ XP)")
+    for threshold, title in milestones:
+        if st.session_state.total_xp >= threshold and title not in st.session_state.achievements:
+            st.session_state.achievements.append(title)
+            if threshold >= 2000:
+                st.balloons()
+                st.success(f"🏆 LEGENDARY ACHIEVEMENT UNLOCKED: {title}! ({threshold}+ XP)")
+            else:
+                st.success(f"🎖️ Achievement Unlocked: {title}! ({threshold}+ XP)")
     
-    elif st.session_state.total_xp >= 200 and "Student" not in st.session_state.achievements:
-        st.session_state.achievements.append("Student")
-        st.success("📚 Achievement Unlocked: Student! (200+ XP)")
-    
-    # XP notification
     if amount > 0:
-        st.success(f"🌟 +{amount} XP earned! {reason}")
+        st.success(f"⭐ +{amount} XP earned! {reason}")
 
-def display_slide(slide_data: dict) -> None:
-    """Display a slide with enhanced formatting and XP rewards"""
+def display_100_question_quiz():
+    """Display the complete 100-question quiz with maximum XP rewards"""
     
-    # Main content
-    st.markdown(slide_data["content"])
+    st.markdown("# 🏛️ The Ultimate Michigan History Challenge")
+    st.markdown("## 100 Questions - Maximum XP - Epic Achievement System")
+    st.markdown("**Test your complete mastery of Michigan's First Residents and Colonial Period!**")
     
-    # XP reward for viewing
-    if f"viewed_{slide_data['id']}" not in st.session_state:
-        award_xp(slide_data.get("xp_reward", 25), f"Viewing {slide_data['title']}")
-        st.session_state[f"viewed_{slide_data['id']}"] = True
-    
-    # Interactive elements
-    if slide_data.get("interactive"):
-        st.markdown("---")
+    if not st.session_state.quiz_started:
+        st.markdown("""
+        ### 🎯 Challenge Overview:
+        - **100 Sequential Questions** covering all major topics
+        - **Maximum XP Rewards**: Up to 3,000+ XP possible
+        - **Epic Achievements**: Unlock legendary titles
+        - **Complete Mastery Test**: Prove your historical expertise
         
-        if "discussion_prompt" in slide_data:
-            st.markdown("### 💭 Critical Thinking Discussion:")
-            st.info(slide_data["discussion_prompt"])
-            
-            # Response area
-            response_key = f"response_{slide_data['id']}"
-            response = st.text_area(
-                "Share your analysis:",
-                key=response_key,
-                placeholder="Provide a thoughtful historical analysis...",
-                height=120
-            )
-            
-            if response and len(response.split()) >= 50:  # Minimum 50 words for XP
-                if st.button(f"Submit Response", key=f"save_{slide_data['id']}"):
-                    st.session_state.student_responses[response_key] = {
-                        'response': response,
-                        'timestamp': datetime.now().isoformat(),
-                        'slide': slide_data['title'],
-                        'word_count': len(response.split())
-                    }
-                    award_xp(75, "Thoughtful discussion response")
-                    st.success("Response submitted! Great historical thinking! 🎓")
-            elif response:
-                st.warning("Please provide a more detailed response (at least 50 words) for XP credit.")
-
-def display_quiz(quiz_id: str) -> None:
-    """Display an interactive quiz with XP rewards and celebrations"""
-    
-    if quiz_id not in QUIZ_DATA:
-        st.error("Quiz not found!")
+        ### 🏆 XP Scoring System:
+        - **Perfect Score (100%)**: 1,500 XP + 500 Bonus = **2,000 XP**
+        - **Excellent (90-99%)**: 1,350-1,485 XP + 300 Bonus
+        - **Very Good (80-89%)**: 1,200-1,335 XP + 200 Bonus  
+        - **Good (70-79%)**: 1,050-1,185 XP + 100 Bonus
+        - **Fair (60-69%)**: 900-1,035 XP + 50 Bonus
+        
+        ### 🎉 Special Achievements Available:
+        - **Perfect Century**: 100% score with all explanations read
+        - **Speed Demon**: Complete in under 30 minutes
+        - **Scholar Supreme**: Read all historical explanations
+        - **Michigan Master**: Achieve ultimate XP threshold
+        """)
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("🚀 BEGIN 100-QUESTION CHALLENGE", key="start_quiz"):
+                st.session_state.quiz_started = True
+                st.session_state.start_time = time.time()
+                st.rerun()
         return
     
-    quiz = QUIZ_DATA[quiz_id]
-    st.markdown(f"## 📝 {quiz['title']}")
-    st.markdown("Test your knowledge and earn XP!")
+    if st.session_state.quiz_completed:
+        display_final_results()
+        return
     
-    with st.form(f"quiz_{quiz_id}"):
-        answers = {}
+    # Quiz progress indicator
+    progress = len(st.session_state.answers) / 100
+    st.progress(progress)
+    st.caption(f"Progress: {len(st.session_state.answers)}/100 questions answered")
+    
+    # Timer display
+    if hasattr(st.session_state, 'start_time'):
+        elapsed_time = time.time() - st.session_state.start_time
+        minutes, seconds = divmod(int(elapsed_time), 60)
+        st.markdown(f"**Time Elapsed: {minutes:02d}:{seconds:02d}**")
+    
+    # Main quiz form
+    with st.form("complete_100_quiz"):
+        st.markdown("### Answer all 100 questions:")
         
-        for i, q in enumerate(quiz["questions"]):
+        # Display all questions in a scrollable format
+        for i, q in enumerate(QUESTIONS):
             st.markdown(f"**Question {i+1}:** {q['question']}")
             
             answer = st.radio(
                 "Choose your answer:",
                 options=q["options"],
-                key=f"q_{quiz_id}_{i}",
-                index=None
+                key=f"question_{i}",
+                index=st.session_state.answers.get(i, None)
             )
             
             if answer is not None:
-                answers[i] = q["options"].index(answer)
-        
-        submitted = st.form_submit_button("🎯 Submit Quiz")
-        
-        if submitted and len(answers) == len(quiz["questions"]):
-            # Grade the quiz
-            correct_count = 0
-            total_questions = len(quiz["questions"])
+                st.session_state.answers[i] = q["options"].index(answer)
             
             st.markdown("---")
-            st.markdown("### 📊 Quiz Results:")
-            
-            for i, q in enumerate(quiz["questions"]):
-                if i in answers:
-                    is_correct = answers[i] == q["correct"]
-                    if is_correct:
-                        correct_count += 1
-                        st.success(f"✅ Question {i+1}: Correct! (+10 XP)")
-                    else:
-                        st.error(f"❌ Question {i+1}: Incorrect")
-                        st.info(f"**Correct answer:** {q['options'][q['correct']]}")
-                    
-                    with st.expander(f"Historical Context for Question {i+1}"):
-                        st.markdown(q['explanation'])
-            
-            # Overall score and XP calculation
-            score_pct = (correct_count / total_questions) * 100
-            base_xp = correct_count * 10
-            bonus_xp = 0
-            
-            # Performance bonuses
-            if score_pct == 100:
-                bonus_xp = 100
-                st.balloons()  # Celebration for perfect score
-                st.success("🎉 PERFECT SCORE! Outstanding historical knowledge!")
-                if "Perfectionist" not in st.session_state.achievements:
-                    st.session_state.achievements.append("Perfectionist")
-                    st.success("🏆 Achievement Unlocked: Perfectionist!")
-            elif score_pct >= 80:
-                bonus_xp = 50
-                st.success("🌟 Excellent work! You've mastered this material!")
-            elif score_pct >= 60:
-                bonus_xp = 25
-                st.success("📚 Good understanding! Keep studying!")
-            else:
-                st.warning("📖 Review the material and try again for more XP!")
-            
-            total_xp_earned = base_xp + bonus_xp
-            st.session_state.quiz_scores[quiz_id] = score_pct
-            
-            if total_xp_earned > 0:
-                award_xp(total_xp_earned, f"Quiz completion: {score_pct:.0f}%")
-            
-            # Streak tracking
-            if score_pct >= 70:
-                st.session_state.current_streak += 1
-                if st.session_state.current_streak >= 3 and "On Fire" not in st.session_state.achievements:
-                    st.session_state.achievements.append("On Fire")
-                    st.success("🔥 Achievement Unlocked: On Fire! (3 quiz streak)")
-            else:
-                st.session_state.current_streak = 0
+        
+        # Submit button
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            submitted = st.form_submit_button("🎯 SUBMIT COMPLETE QUIZ (100 QUESTIONS)")
+        
+        if submitted and len(st.session_state.answers) == 100:
+            process_quiz_results()
 
-def display_progress_dashboard():
-    """Display student progress and achievements"""
+def process_quiz_results():
+    """Process the 100-question quiz with maximum XP calculation"""
     
-    st.markdown("# 📊 Your Learning Progress")
-    st.markdown("Track your journey through Michigan history!")
+    correct_count = 0
+    explanations_viewed = 0
     
+    # Calculate correct answers
+    for i, q in enumerate(QUESTIONS):
+        if i in st.session_state.answers and st.session_state.answers[i] == q["correct"]:
+            correct_count += 1
+    
+    # Calculate completion time
+    completion_time = time.time() - st.session_state.start_time if hasattr(st.session_state, 'start_time') else 0
+    completion_minutes = completion_time / 60
+    
+    # Store results
+    st.session_state.final_score = (correct_count / 100) * 100
+    st.session_state.correct_count = correct_count
+    st.session_state.completion_time = completion_minutes
+    st.session_state.quiz_completed = True
+    
+    # Calculate XP with maximum rewards
+    base_xp = correct_count * 15  # 15 XP per correct answer
+    performance_bonus = 0
+    special_bonuses = 0
+    
+    # Performance tier bonuses
+    score_pct = st.session_state.final_score
+    if score_pct == 100:
+        performance_bonus = 500
+        st.balloons()
+        if "Perfect Century" not in st.session_state.achievements:
+            st.session_state.achievements.append("Perfect Century")
+            special_bonuses += 200
+    elif score_pct >= 95:
+        performance_bonus = 400
+    elif score_pct >= 90:
+        performance_bonus = 300
+    elif score_pct >= 85:
+        performance_bonus = 250
+    elif score_pct >= 80:
+        performance_bonus = 200
+    elif score_pct >= 75:
+        performance_bonus = 150
+    elif score_pct >= 70:
+        performance_bonus = 100
+    elif score_pct >= 60:
+        performance_bonus = 50
+    
+    # Speed bonus
+    if completion_minutes < 30 and score_pct >= 80:
+        if "Speed Demon" not in st.session_state.achievements:
+            st.session_state.achievements.append("Speed Demon")
+            special_bonuses += 150
+    
+    # Century Club achievement
+    if "Century Club Champion" not in st.session_state.achievements:
+        st.session_state.achievements.append("Century Club Champion")
+        special_bonuses += 100
+    
+    total_xp = base_xp + performance_bonus + special_bonuses
+    award_xp(total_xp, f"Complete 100-Question Challenge: {score_pct:.1f}%")
+    
+    st.rerun()
+
+def display_final_results():
+    """Display spectacular final results with maximum celebration"""
+    
+    st.markdown("# 🎉 CHALLENGE COMPLETE!")
+    st.markdown("## Your Ultimate Michigan History Results")
+    
+    score_pct = st.session_state.final_score
+    correct_count = st.session_state.correct_count
+    
+    # Results overview
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Total XP", st.session_state.total_xp)
+        st.metric("Final Score", f"{score_pct:.1f}%", delta=f"{correct_count}/100")
     
     with col2:
-        quiz_completion = len(st.session_state.quiz_scores) / len(QUIZ_DATA) * 100
-        st.metric("Quiz Completion", f"{quiz_completion:.0f}%")
+        completion_time = st.session_state.completion_time
+        st.metric("Completion Time", f"{completion_time:.1f} min")
     
     with col3:
-        avg_score = sum(st.session_state.quiz_scores.values()) / len(st.session_state.quiz_scores) if st.session_state.quiz_scores else 0
-        st.metric("Average Quiz Score", f"{avg_score:.0f}%")
+        st.metric("Total XP Earned", st.session_state.total_xp)
     
     with col4:
-        st.metric("Current Streak", st.session_state.current_streak)
+        st.metric("Achievements", len(st.session_state.achievements))
     
-    # XP Progress Bar
-    st.markdown("### XP Progress to Next Level")
-    levels = [0, 200, 500, 1000, 2000]
-    current_level = 0
-    next_level_xp = 200
+    # Performance analysis
+    st.markdown("### 📊 Detailed Performance Analysis")
     
-    for i, level in enumerate(levels):
-        if st.session_state.total_xp >= level:
-            current_level = i
-            next_level_xp = levels[i + 1] if i + 1 < len(levels) else levels[-1]
+    if score_pct == 100:
+        st.success("🏆 PERFECT SCORE! You are a TRUE MICHIGAN HISTORY MASTER!")
+        st.balloons()
+    elif score_pct >= 95:
+        st.success("🌟 OUTSTANDING! Near-perfect mastery of Michigan history!")
+    elif score_pct >= 90:
+        st.success("⭐ EXCELLENT! You have exceptional knowledge of Michigan's past!")
+    elif score_pct >= 85:
+        st.success("✨ VERY GOOD! Strong understanding across all topics!")
+    elif score_pct >= 80:
+        st.info("📚 GOOD WORK! Solid grasp of Michigan historical concepts!")
+    elif score_pct >= 70:
+        st.info("📖 FAIR PROGRESS! Continue studying for even better results!")
+    else:
+        st.warning("📝 NEEDS IMPROVEMENT! Review the material and try again!")
     
-    progress = min(st.session_state.total_xp / next_level_xp, 1.0)
-    st.progress(progress)
-    st.caption(f"Level {current_level + 1} - {st.session_state.total_xp}/{next_level_xp} XP")
+    # Question-by-question breakdown
+    with st.expander("🔍 Complete Question Analysis (Click to expand)"):
+        for i, q in enumerate(QUESTIONS):
+            user_answer = st.session_state.answers.get(i)
+            correct_answer = q["correct"]
+            
+            if user_answer == correct_answer:
+                st.success(f"✅ Question {i+1}: CORRECT")
+            else:
+                st.error(f"❌ Question {i+1}: INCORRECT")
+                st.info(f"Your answer: {q['options'][user_answer] if user_answer is not None else 'No answer'}")
+                st.info(f"Correct answer: {q['options'][correct_answer]}")
+            
+            with st.expander(f"Historical Context - Question {i+1}"):
+                st.markdown(f"**Question:** {q['question']}")
+                st.markdown(f"**Explanation:** {q['explanation']}")
     
-    # Achievements
+    # Achievement showcase
     if st.session_state.achievements:
-        st.markdown("### 🏆 Your Achievements")
-        achievement_cols = st.columns(3)
+        st.markdown("### 🏆 Your Legendary Achievements")
+        
+        achievement_cols = st.columns(min(len(st.session_state.achievements), 3))
         for i, achievement in enumerate(st.session_state.achievements):
             with achievement_cols[i % 3]:
-                st.success(f"🏆 {achievement}")
-    
-    # Detailed Quiz Results
-    if st.session_state.quiz_scores:
-        st.markdown("### 📝 Quiz Performance")
-        
-        for quiz_id, score in st.session_state.quiz_scores.items():
-            quiz_title = QUIZ_DATA[quiz_id]["title"]
-            
-            if score >= 90:
-                st.success(f"🌟 {quiz_title}: {score:.0f}% - Excellent mastery!")
-            elif score >= 80:
-                st.success(f"✅ {quiz_title}: {score:.0f}% - Strong understanding!")
-            elif score >= 70:
-                st.info(f"📚 {quiz_title}: {score:.0f}% - Good progress!")
-            elif score >= 60:
-                st.warning(f"⚠️ {quiz_title}: {score:.0f}% - Needs review")
-            else:
-                st.error(f"❌ {quiz_title}: {score:.0f}% - Requires attention")
-
-def sidebar_navigation() -> str:
-    """Enhanced sidebar with XP tracking"""
-    
-    st.sidebar.markdown("# 🏛️ HIS220: Michigan History")
-    st.sidebar.markdown("### CognitiveCloud.ai Learning Platform")
-    
-    # XP Display
-    st.sidebar.markdown(f"### 🌟 Your XP: {st.session_state.total_xp}")
-    
-    # Mode selection
-    mode = st.sidebar.radio(
-        "Learning Mode:",
-        ["📚 Course Lectures", "📝 Knowledge Quizzes", "📊 Progress Dashboard", "📖 Study Resources"]
-    )
-    
-    if mode == "📚 Course Lectures":
-        st.sidebar.markdown("## Module Navigation")
-        
-        # Slide selector
-        slide_titles = [f"Module {i+1}: {slide['title']}" for i, slide in enumerate(SLIDES)]
-        selected_slide = st.sidebar.selectbox(
-            "Jump to module:",
-            options=range(len(SLIDES)),
-            format_func=lambda x: slide_titles[x],
-            index=st.session_state.current_slide
-        )
-        
-        if selected_slide != st.session_state.current_slide:
-            st.session_state.current_slide = selected_slide
-        
-        # Navigation buttons
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("⬅️ Previous") and st.session_state.current_slide > 0:
-                st.session_state.current_slide -= 1
-                st.rerun()
-        
-        with col2:
-            if st.button("Next ➡️") and st.session_state.current_slide < len(SLIDES) - 1:
-                st.session_state.current_slide += 1
-                st.rerun()
-        
-        # Progress
-        progress = (st.session_state.current_slide + 1) / len(SLIDES)
-        st.sidebar.progress(progress)
-        st.sidebar.caption(f"Module {st.session_state.current_slide + 1} of {len(SLIDES)}")
-    
-    elif mode == "📝 Knowledge Quizzes":
-        st.sidebar.markdown("## Available Quizzes")
-        
-        for quiz_id, quiz in QUIZ_DATA.items():
-            if quiz_id in st.session_state.quiz_scores:
-                score = st.session_state.quiz_scores[quiz_id]
-                if score >= 90:
-                    st.sidebar.markdown(f"🌟 {quiz['title']}: {score:.0f}%")
-                elif score >= 70:
-                    st.sidebar.markdown(f"✅ {quiz['title']}: {score:.0f}%")
+                if "ULTIMATE" in achievement or "Perfect" in achievement:
+                    st.markdown(f"""
+                    <div style='background: linear-gradient(45deg, #FFD700, #FF6B35); 
+                               color: white; padding: 15px; border-radius: 15px; 
+                               text-align: center; margin: 10px; border: 3px solid #FF6B35;'>
+                        <h4>🏆 {achievement}</h4>
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
-                    st.sidebar.markdown(f"📚 {quiz['title']}: {score:.0f}%")
-            else:
-                st.sidebar.markdown(f"⏳ {quiz['title']}: Not attempted")
+                    st.markdown(f"""
+                    <div style='background: linear-gradient(45deg, #4ECDC4, #44A08D); 
+                               color: white; padding: 12px; border-radius: 10px; 
+                               text-align: center; margin: 8px;'>
+                        <strong>🎖️ {achievement}</strong>
+                    </div>
+                    """, unsafe_allow_html=True)
     
-    # Achievements display
-    if st.session_state.achievements:
-        st.sidebar.markdown("### 🏆 Recent Achievements")
-        for achievement in st.session_state.achievements[-3:]:  # Show last 3
-            st.sidebar.success(f"🏆 {achievement}")
-    
-    return mode.split()[1].lower()
-
-def display_study_resources():
-    """Display comprehensive study resources"""
-    
-    st.markdown("# 📖 HIS220 Study Resources")
-    st.markdown("Enhance your understanding of Michigan history with these curated resources.")
-    
-    # Primary Sources
-    st.markdown("## 📜 Primary Sources")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### Colonial Documents")
-        st.markdown("- **Treaty of Paris (1763)** - Ended French rule in North America")
-        st.markdown("- **Royal Proclamation of 1763** - Limited westward expansion")
-        st.markdown("- **Pontiac's Speeches** - Recorded diplomatic negotiations")
-        st.markdown("- **British Military Reports** - Contemporary accounts of conflicts")
+    # Final celebration message
+    if score_pct >= 90:
+        st.markdown("""
+        ### 🎊 CONGRATULATIONS, HISTORY CHAMPION!
         
-        st.markdown("### Archaeological Evidence")
-        st.markdown("- **Radiocarbon Dating Results** - Evidence of early human presence")
-        st.markdown("- **Artifact Collections** - Tools and pottery from indigenous peoples")
-        st.markdown("- **Site Reports** - Excavations across Michigan")
-    
-    with col2:
-        st.markdown("### Maps and Visual Sources")
-        st.markdown("- **French Colonial Maps** - Show early European understanding")
-        st.markdown("- **British Military Maps** - Strategic locations and routes")
-        st.markdown("- **Native American Territory Maps** - Tribal boundaries and movements")
+        You have demonstrated exceptional mastery of Michigan's early history. Your knowledge of:
+        - Indigenous peoples and archaeological discoveries
+        - British colonial administration and conflicts  
+        - Post-revolutionary transitions and key figures
+        - Complex historical relationships and causation
         
-        st.markdown("### Oral Histories")
-        st.markdown("- **Native American Traditions** - Stories passed down through generations")
-        st.markdown("- **French Voyageur Accounts** - Tales of early exploration")
-        st.markdown("- **British Settler Narratives** - Colonial experiences")
+        **Makes you a true expert in Michigan historical studies!**
+        """)
     
-    # Secondary Sources
-    st.markdown("## 📚 Scholarly Resources")
-    
-    study_materials = [
-        {
-            "title": "Michigan History Timeline",
-            "description": "Interactive timeline covering pre-contact to statehood",
-            "type": "Visual Resource"
-        },
-        {
-            "title": "Native American Tribes of Michigan",
-            "description": "Comprehensive guide to Ojibwe, Ottawa, and Potawatomi peoples",
-            "type": "Cultural Studies"
-        },
-        {
-            "title": "Colonial Conflicts Database",
-            "description": "Detailed records of Pontiac's Rebellion and other conflicts",
-            "type": "Military History"
-        },
-        {
-            "title": "Archaeological Discovery Updates",
-            "description": "Latest findings challenging traditional migration theories",
-            "type": "Archaeology"
-        }
-    ]
-    
-    for resource in study_materials:
-        with st.expander(f"📖 {resource['title']} - {resource['type']}"):
-            st.markdown(resource['description'])
-    
-    # Study Tips
-    st.markdown("## 🎯 Study Strategies")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### Historical Thinking Skills")
-        st.markdown("- **Chronological Reasoning** - Understand cause and effect over time")
-        st.markdown("- **Source Analysis** - Evaluate reliability and bias in documents")
-        st.markdown("- **Multiple Perspectives** - Consider different cultural viewpoints")
-        st.markdown("- **Historical Context** - Place events in their proper setting")
-    
+    # Restart option
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown("### Exam Preparation")
-        st.markdown("- **Timeline Creation** - Make visual chronologies of major events")
-        st.markdown("- **Concept Mapping** - Connect related ideas and themes")
-        st.markdown("- **Practice Essays** - Write analytical responses to historical questions")
-        st.markdown("- **Group Discussions** - Debate different interpretations")
+        if st.button("🔄 RETAKE CHALLENGE FOR HIGHER SCORE"):
+            # Reset quiz state
+            st.session_state.quiz_started = False
+            st.session_state.answers = {}
+            st.session_state.quiz_completed = False
+            st.session_state.final_score = 0
+            st.rerun()
 
 def main():
-    """Main application function with enhanced XP system"""
+    """Main application for the 100-question ultimate challenge"""
     
-    # Custom CSS for CognitiveCloud.ai branding
+    # Epic styling
     st.markdown("""
     <style>
-    .main > div {
-        padding-top: 1rem;
-    }
+    .main > div { padding-top: 1rem; }
     .stButton > button {
         width: 100%;
-        border-radius: 12px;
-        border: 2px solid #1f77b4;
-        background: linear-gradient(135deg, #1f77b4 0%, #ff7f0e 100%);
+        border-radius: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         font-weight: bold;
-        padding: 0.5rem 1rem;
+        padding: 1rem;
+        border: none;
+        font-size: 1.1em;
         transition: all 0.3s ease;
     }
     .stButton > button:hover {
-        background: linear-gradient(135deg, #ff7f0e 0%, #1f77b4 100%);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 25px rgba(118, 75, 162, 0.5);
     }
-    .history-module {
-        background: linear-gradient(135deg, #2E86AB 0%, #A23B72 100%);
+    .challenge-header {
+        background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
         color: white;
-        padding: 25px;
-        border-radius: 15px;
-        margin: 15px 0;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    }
-    .xp-notification {
-        background: linear-gradient(45deg, #FFD700, #FFA500);
-        color: #333;
-        padding: 10px;
-        border-radius: 8px;
-        font-weight: bold;
-        text-align: center;
-        margin: 10px 0;
-    }
-    .achievement-badge {
-        background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-        color: white;
-        padding: 8px 16px;
+        padding: 30px;
         border-radius: 20px;
-        display: inline-block;
-        margin: 5px;
-        font-weight: bold;
+        text-align: center;
+        margin: 20px 0;
+        box-shadow: 0 15px 35px rgba(247, 147, 30, 0.3);
     }
     </style>
     """, unsafe_allow_html=True)
     
-    # Header with branding
+    # Epic header
     st.markdown("""
-    <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; margin-bottom: 20px;'>
-        <h1 style='color: white; margin: 0;'>🏛️ HIS220: Michigan History</h1>
-        <h3 style='color: #E8E8E8; margin: 10px 0 0 0;'>CognitiveCloud.ai Learning Platform</h3>
+    <div class='challenge-header'>
+        <h1>🏛️ HIS220: ULTIMATE MICHIGAN HISTORY CHALLENGE</h1>
+        <h2>100 Questions • Maximum XP • Legendary Achievements</h2>
+        <h3>CognitiveCloud.ai Learning Platform</h3>
     </div>
     """, unsafe_allow_html=True)
     
-    # Determine current mode
-    current_mode = sidebar_navigation()
+    # Sidebar with current stats
+    st.sidebar.markdown("# 🎯 Challenge Status")
+    st.sidebar.metric("Total XP", st.session_state.total_xp)
+    st.sidebar.metric("Achievements Unlocked", len(st.session_state.achievements))
     
-    if current_mode == "course":
-        # Display current slide
-        current_slide = SLIDES[st.session_state.current_slide]
-        display_slide(current_slide)
-        
-        # Navigation controls at bottom
-        st.markdown("---")
-        col1, col2, col3 = st.columns([1, 2, 1])
-        
-        with col1:
-            if st.session_state.current_slide > 0:
-                if st.button("⬅️ Previous Module"):
-                    st.session_state.current_slide -= 1
-                    st.rerun()
-        
-        with col3:
-            if st.session_state.current_slide < len(SLIDES) - 1:
-                if st.button("Next Module ➡️"):
-                    st.session_state.current_slide += 1
-                    st.rerun()
-            elif st.session_state.current_slide == len(SLIDES) - 1:
-                if st.button("🎓 Complete Course"):
-                    if "Course Completed" not in st.session_state.achievements:
-                        st.session_state.achievements.append("Course Completed")
-                        award_xp(300, "Course completion bonus!")
-                        st.balloons()
-                        st.success("🎉 Congratulations! You've completed HIS220: Michigan History!")
-        
-        with col2:
-            # Progress indicator
-            progress = (st.session_state.current_slide + 1) / len(SLIDES)
-            st.progress(progress)
-            st.caption(f"Module {st.session_state.current_slide + 1} of {len(SLIDES)}")
+    if st.session_state.quiz_completed:
+        st.sidebar.metric("Final Score", f"{st.session_state.final_score:.1f}%")
+        st.sidebar.metric("Questions Correct", f"{st.session_state.correct_count}/100")
     
-    elif current_mode == "knowledge":
-        st.markdown("# 📝 Knowledge Assessment Center")
-        st.markdown("Test your mastery of Michigan history and earn XP!")
-        
-        # Quiz selection with difficulty indicators
-        quiz_options = []
-        for quiz_id, quiz in QUIZ_DATA.items():
-            difficulty = "🟢 Beginner" if "indigenous" in quiz_id else "🟡 Intermediate" if "british" in quiz_id or "revolutionary" in quiz_id else "🔴 Advanced"
-            quiz_options.append(f"{difficulty} - {quiz['title']}")
-        
-        selected_option = st.selectbox("Select a quiz:", quiz_options)
-        quiz_choice = list(QUIZ_DATA.keys())[quiz_options.index(selected_option)]
-        
-        # Display quiz
-        display_quiz(quiz_choice)
-        
-        # Quiz statistics
-        if st.session_state.quiz_scores:
-            st.markdown("---")
-            st.markdown("## 📈 Your Quiz Statistics")
-            
-            total_quizzes = len(QUIZ_DATA)
-            completed_quizzes = len(st.session_state.quiz_scores)
-            avg_score = sum(st.session_state.quiz_scores.values()) / completed_quizzes if completed_quizzes > 0 else 0
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Quizzes Completed", f"{completed_quizzes}/{total_quizzes}")
-            with col2:
-                st.metric("Average Score", f"{avg_score:.1f}%")
-            with col3:
-                st.metric("Quiz Streak", st.session_state.current_streak)
+    # Recent achievements
+    if st.session_state.achievements:
+        st.sidebar.markdown("### 🏆 Recent Achievements")
+        for achievement in st.session_state.achievements[-3:]:
+            st.sidebar.success(f"🏆 {achievement}")
     
-    elif current_mode == "progress":
-        display_progress_dashboard()
-        
-        # Export progress data
-        if st.button("💾 Export Learning Progress"):
-            export_data = {
-                'course': 'HIS220',
-                'student_id': f"student_{hash(str(st.session_state)) % 10000}",
-                'total_xp': st.session_state.total_xp,
-                'achievements': st.session_state.achievements,
-                'quiz_scores': st.session_state.quiz_scores,
-                'student_responses': st.session_state.student_responses,
-                'current_streak': st.session_state.current_streak,
-                'export_timestamp': datetime.now().isoformat()
-            }
-            
-            json_str = json.dumps(export_data, indent=2)
-            st.download_button(
-                "📊 Download Progress Report",
-                json_str,
-                file_name=f"HIS220_progress_{datetime.now().strftime('%Y%m%d')}.json",
-                mime="application/json"
-            )
+    # Main quiz display
+    display_100_question_quiz()
     
-    elif current_mode == "study":
-        display_study_resources()
-    
-    # Footer with course info
+    # Footer
     st.markdown("---")
     st.markdown("""
-    <div style='text-align: center; padding: 15px; background: #f0f2f6; border-radius: 10px;'>
-        <p><strong>HIS220: Michigan History</strong> | CognitiveCloud.ai Learning Platform</p>
-        <p>Understanding Michigan's past to inform its future</p>
+    <div style='text-align: center; padding: 20px; background: #1f1f1f; color: white; border-radius: 15px;'>
+        <h3>🏛️ MICHIGAN HISTORY ULTIMATE CHALLENGE</h3>
+        <p><strong>100 Questions • Complete Historical Mastery • Maximum XP Achievement System</strong></p>
+        <p>CognitiveCloud.ai Learning Platform - HIS220</p>
     </div>
     """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
+        "question": "What was the land that became Michigan inhabited by before Europeans arrived?",
+        "options": ["Empty wilderness", "Various Native American peoples", "French settlers", "Spanish explorers"],
+        "correct": 1,
+        "explanation": "Michigan was inhabited by various indigenous peoples for thousands of years before European contact."
+    },
+    {
+        "question": "Why did Europeans initially call Native Americans 'Indians'?",
+        "options": ["It was their actual name", "Columbus thought he reached the East Indies", "It was a Spanish word", "They called themselves that"],
+        "correct": 1,
+        "explanation": "Columbus mistakenly believed he had reached the East Indies, leading to the persistent misnomer 'Indians.'"
+    },
+    {
+        "question": "What was Columbus's mistaken belief that led to the term 'Indians'?",
+        "options": ["He thought they were from India", "He believed he reached the East Indies", "He confused them with Indonesian peoples", "He thought they were Spanish"],
+        "correct": 1,
+        "explanation": "Columbus believed he had reached the Indies when he encountered the Americas."
+    },
+    {
+        "question": "According to the text, what name has persisted for over a century after Columbus?",
+        "options": ["Americans", "Indians", "Natives", "Aboriginals"],
+        "correct": 1,
+        "explanation": "The term 'Indians' persisted despite being based on Columbus's geographical error."
+    },
+    {
+        "question": "How long have misnomers about Native Americans been used in Michigan?",
+        "options": ["Decades", "Over a century", "A few years", "Since statehood"],
+        "correct": 1,
+        "explanation": "The text indicates these naming errors have persisted for over a century."
+    },
+    {
+        "question": "What did Europeans believe about the land when they first arrived?",
+        "options": ["It was densely populated", "It was mostly uninhabited", "It belonged to Spain", "It was claimed by France"],
+        "correct": 1,
+        "explanation": "Europeans often viewed the land as empty or sparsely populated, ignoring indigenous presence."
+    },
+    {
+        "question": "Which French explorers are mentioned as having contact with Michigan's indigenous peoples?",
+        "options": ["Cartier and Champlain", "The French found in Michigan", "Marquette and Joliet", "La Salle and Cadillac"],
+        "correct": 1,
+        "explanation": "The text mentions French contact with indigenous peoples in the Michigan region."
+    },
+    {
+        "question": "What assumption about human migration to the Americas has been challenged?",
+        "options": ["That it happened recently", "Traditional timing estimates", "That it came from Europe", "That it was by boat"],
+        "correct": 1,
+        "explanation": "Recent discoveries have challenged traditional assumptions about when humans first arrived."
+    },
+    {
+        "question": "What was the most common assumption about how people originally came to the Western Hemisphere?",
+        "options": ["By boat", "Via a land bridge from Asia", "From Europe", "They evolved there"],
+        "correct": 1,
+        "explanation": "The traditional theory suggests people crossed a land bridge from Asia during ice ages."
+    },
+    {
+        "question": "How did early peoples supposedly cross into the Americas according to traditional theories?",
+        "options": ["By boat across the Pacific", "Via the Bering land bridge", "Across the Atlantic", "Through Central America"],
+        "correct": 1,
+        "explanation": "The Bering land bridge theory was the traditional explanation for human migration to the Americas."
+    },
+    {
+        "question": "What geographical feature connected Asia to the Americas during ancient times?",
+        "options": ["An ice sheet", "The Bering land bridge", "A chain of islands", "A frozen ocean"],
+        "correct": 1,
+        "explanation": "The Bering land bridge (Beringia) connected Asia and North America during periods of lower sea level."
+    },
+    {
+        "question": "At what times in the past was this land bridge supposedly accessible?",
+        "options": ["During warm periods", "During ice ages", "Every winter", "Only in summer"],
+        "correct": 1,
+        "explanation": "Lower sea levels during ice ages would have exposed the land bridge."
+    },
+    {
+        "question": "What prevented travel between the hemispheres according to the text?",
+        "options": ["Mountains", "Desert", "A narrow waterway", "Dense forests"],
+        "correct": 2,
+        "explanation": "The text mentions a narrow waterway that prevented easy travel between continents."
+    },
+    {
+        "question": "Why was the narrow waterway between continents significant?",
+        "options": ["It was too deep", "It blocked migration", "It was always frozen", "It had strong currents"],
+        "correct": 1,
+        "explanation": "The waterway served as a barrier to movement between the hemispheres."
+    },
+    {
+        "question": "What methods of determining age are mentioned in relation to archaeological discoveries?",
+        "options": ["Tree ring dating", "Radiocarbon dating", "Pottery analysis", "Geological layers"],
+        "correct": 1,
+        "explanation": "The text specifically mentions radiocarbon dating as a method for determining age."
+    },
+    {
+        "question": "What dating technique involving radiocarbon is referenced?",
+        "options": ["Carbon-14 testing", "Radiocarbon dating", "Carbon analysis", "Isotope dating"],
+        "correct": 1,
+        "explanation": "Radiocarbon dating is the specific technique mentioned in the text."
+    },
+    {
+        "question": "How have comparative studies of primitive vessels contributed to archaeological understanding?",
+        "options": ["They show trade routes", "They help with dating", "They reveal migration patterns", "They indicate cultural connections"],
+        "correct": 1,
+        "explanation": "Comparative studies help archaeologists understand chronology and dating."
+    },
+    {
+        "question": "What new discoveries have resulted in important changes to historical timelines?",
+        "options": ["Pottery finds", "Archaeological discoveries", "Written records", "Oral histories"],
+        "correct": 1,
+        "explanation": "Archaeological discoveries have pushed back estimates of human presence in the Americas."
+    },
+    {
+        "question": "In what decade did archaeological discoveries begin pushing back settlement estimates?",
+        "options": ["1920s", "1940s", "1960s", "1980s"],
+        "correct": 1,
+        "explanation": "The text mentions discoveries in the 1940s that began changing our understanding."
+    },
+    {
+        "question": "What was the previous assumption about when humans first arrived in the hemisphere?",
+        "options": ["5,000 years ago", "Much more recently", "10,000 years ago", "50,000 years ago"],
+        "correct": 1,
+        "explanation": "Earlier estimates were much more recent than current archaeological evidence suggests."
+    },
+    {
+        "question": "Where have archaeological discoveries suggested earlier human presence?",
+        "options": ["Only in Michigan", "California and Mexico", "Only in Canada", "Throughout the Midwest"],
+        "correct": 1,
+        "explanation": "The text specifically mentions discoveries in California and Mexico."
+    },
+    {
+        "question": "What areas are mentioned as having evidence of early human habitation?",
+        "options": ["Great Lakes region", "California and Mexico", "Eastern seaboard", "Pacific Northwest"],
+        "correct": 1,
+        "explanation": "California and Mexico are specifically cited as areas with early evidence."
+    },
+    {
+        "question": "What time range do some discoveries suggest for human presence?",
+        "options": ["5,000-10,000 years", "20,000-40,000 years", "50,000-100,000 years", "1,000-5,000 years"],
+        "correct": 1,
+        "explanation": "The text mentions discoveries suggesting 20,000 to 40,000 years of human presence."
+    },
+    {
+        "question": "How does this compare to previously assumed timelines?",
+        "options": ["About the same", "Much earlier than previously assumed", "Slightly later", "Much later"],
+        "correct": 1,
+        "explanation": "New evidence suggests much earlier human presence than traditional theories assumed."
+    },
+    {
+        "question": "What was the earlier estimate of human arrival that has been challenged?",
+        "options": ["250,000 years ago", "The 20,000 to 40,000 year range", "5,000 years ago", "100,000 years ago"],
+        "correct": 1,
+        "explanation": "The text indicates that even estimates of 20,000-40,000 years may be conservative."
+    },
+    
+    # Questions 26-50: British Colonial Period
+    {
+        "question": "Under whose flag did the events described in the colonial section occur?",
+        "options": ["French flag", "British flag", "Spanish flag", "Dutch flag"],
+        "correct": 1,
+        "explanation": "The text specifically mentions events occurring under the British flag."
+    },
+    {
+        "question": "Who was the British commander mentioned as reaching Detroit?",
+        "options": ["Colonel Bouquet", "General Amherst", "Bradstreet", "Major Gladwin"],
+        "correct": 2,
+        "explanation": "Bradstreet is specifically mentioned as the British commander who reached Detroit."
+    },
+    {
+        "question": "In what year did Bradstreet reach Detroit?",
+        "options": ["1763", "1764", "1765", "1766"],
+        "correct": 1,
+        "explanation": "The text states Bradstreet reached Detroit in 1764."
+    },
+    {
+        "question": "What date in August 1764 is specifically mentioned?",
+        "options": ["August 15, 1764", "August 26, 1764", "August 30, 1764", "August 10, 1764"],
+        "correct": 1,
+        "explanation": "August 26, 1764 is the specific date mentioned for Bradstreet reaching Detroit."
+    },
+    {
+        "question": "Where did western tribes assemble according to the text?",
+        "options": ["At Fort Pitt", "At Detroit", "At various locations", "At Oswego"],
+        "correct": 2,
+        "explanation": "The text mentions western tribes assembling at various locations."
+    },
+    {
+        "question": "What did the assembled tribes acknowledge regarding King George?",
+        "options": ["His military power", "The sovereignty of King George", "His divine right", "His territorial claims"],
+        "correct": 1,
+        "explanation": "The tribes acknowledged the sovereignty of King George III."
+    },
+    {
+        "question": "What did the British promise to do regarding war?",
+        "options": ["Continue fighting", "Make war on enemies", "End all warfare", "Expand the conflict"],
+        "correct": 1,
+        "explanation": "The British promised to make war on their enemies as part of the agreement."
+    },
+    {
+        "question": "What expedition from Fort Pitt is mentioned?",
+        "options": ["A trading expedition", "Another expedition to pacify natives", "A surveying mission", "A diplomatic mission"],
+        "correct": 1,
+        "explanation": "Another expedition from Fort Pitt was mentioned to pacify the western natives."
+    },
+    {
+        "question": "Who was tasked with pacifying the western natives?",
+        "options": ["Sir William Johnson", "Colonel Bouquet", "General Amherst", "Major Gladwin"],
+        "correct": 1,
+        "explanation": "The task of pacifying western natives was given to British officials including Johnson."
+    },
+    {
+        "question": "What was Colonel Bouquet's role in the peace process?",
+        "options": ["He opposed peace", "He was necessary to finalize pacification", "He led military attacks", "He negotiated treaties"],
+        "correct": 1,
+        "explanation": "Colonel Bouquet was necessary to finally pacify the region."
+    },
+    {
+        "question": "What was necessary to finalize the pacification efforts?",
+        "options": ["More troops", "Further military action", "Diplomatic negotiations", "Economic incentives"],
+        "correct": 1,
+        "explanation": "Further military action was necessary to complete the pacification process."
+    },
+    {
+        "question": "What kind of resistance was encountered initially?",
+        "options": ["No resistance", "Fierce resistance", "Minimal resistance", "Organized resistance"],
+        "correct": 1,
+        "explanation": "The text indicates there was fierce resistance that needed to be overcome."
+    },
+    {
+        "question": "Who presided over the peace arrangements?",
+        "options": ["Colonel Bouquet", "Sir William Johnson", "General Amherst", "Colonel Bradstreet"],
+        "correct": 1,
+        "explanation": "Sir William Johnson presided over the peace arrangements."
+    },
+    {
+        "question": "What was Sir William Johnson's role?",
+        "options": ["Military commander", "Indian agent", "Colonial governor", "Trading post manager"],
+        "correct": 1,
+        "explanation": "Johnson served as the British Superintendent of Indian Affairs."
+    },
+    {
+        "question": "Where did Johnson put the finishing touches on the peace arrangements?",
+        "options": ["Detroit", "Fort Pitt", "Oswego, New York", "Quebec"],
+        "correct": 2,
+        "explanation": "The finishing touches were put on the peace arrangements at Oswego, New York."
+    },
+    {
+        "question": "At what location in New York did this take place?",
+        "options": ["Albany", "Oswego", "Buffalo", "Rochester"],
+        "correct": 1,
+        "explanation": "Oswego, New York was the specific location mentioned."
+    },
+    {
+        "question": "In what month and year did this council occur?",
+        "options": ["June 1766", "July 1766", "August 1766", "September 1766"],
+        "correct": 1,
+        "explanation": "The council occurred in July 1766."
+    },
+    {
+        "question": "Who were the other leaders present at this meeting?",
+        "options": ["Only British officials", "British and Indian leaders", "French representatives", "Spanish diplomats"],
+        "correct": 1,
+        "explanation": "Both British and Indian leaders were present at the meeting."
+    },
+    {
+        "question": "What was Pontiac's role in these negotiations?",
+        "options": ["He refused to participate", "He was a key Native American leader", "He sided with the French", "He opposed all agreements"],
+        "correct": 1,
+        "explanation": "Pontiac was a significant Native American leader involved in negotiations."
+    },
+    {
+        "question": "How did Pontiac's position change over time?",
+        "options": ["He became more hostile", "He eventually made peace", "He fled the region", "He joined the British army"],
+        "correct": 1,
+        "explanation": "Pontiac eventually came to terms and made peace with the British."
+    },
+    {
+        "question": "What did the British and Indian leader appear to have agreed upon?",
+        "options": ["Continued warfare", "A framework for peace", "British withdrawal", "French return"],
+        "correct": 1,
+        "explanation": "They established a framework for peaceful relations."
+    },
+    {
+        "question": "What made it impractical for the Indians in the Midwest?",
+        "options": ["British military presence", "Distance from British centers", "Lack of trade goods", "French influence"],
+        "correct": 1,
+        "explanation": "The distance and logistics made British control impractical in some areas."
+    },
+    {
+        "question": "Why was the situation challenging for British control?",
+        "options": ["Too many troops needed", "Vast distances involved", "Hostile French population", "Lack of resources"],
+        "correct": 1,
+        "explanation": "The vast territory made effective British control challenging."
+    },
+    {
+        "question": "What reality made British control difficult among the tribes?",
+        "options": ["Language barriers", "Cultural differences", "Geographic challenges", "Religious conflicts"],
+        "correct": 2,
+        "explanation": "The geographic extent and cultural differences made control difficult."
+    },
+    {
+        "question": "What members of which tribe are specifically mentioned?",
+        "options": ["Iroquois", "Peoria tribe", "Cherokee", "Seneca"],
+        "correct": 1,
+        "explanation": "Members of the Peoria tribe are specifically mentioned in the text."
+    },
+    
+    # Questions 51-75: Post-Revolutionary Developments
+    {
+        "question": "What happened to Pontiac in the spring of 1769?",
+        "options": ["He died of disease", "He was murdered", "He moved west", "He became a British ally"],
+        "correct": 1,
+        "explanation": "Pontiac was murdered in the spring of 1769, ending his influential career."
+    },
+    {
+        "question": "Where was Pontiac murdered and buried?",
+        "options": ["Detroit", "St. Louis", "Chicago", "Green Bay"],
+        "correct": 1,
+        "explanation": "Pontiac was murdered and buried in St. Louis."
+    },
+    {
+        "question": "Who was murdered in Mississippi according to the text?",
+        "options": ["A British official", "Pontiac", "A French trader", "An American settler"],
+        "correct": 1,
+        "explanation": "The text refers to Pontiac being murdered, and he was buried near the Mississippi region."
+    },
+    {
+        "question": "Following whose arrival did Bradstreet return to England?",
+        "options": ["Colonel Bouquet", "A new commander", "General Amherst", "Sir William Johnson"],
+        "correct": 1,
+        "explanation": "Bradstreet returned to England following the arrival of another commander."
+    },
+    {
+        "question": "In what year did Bradstreet return to England?",
+        "options": ["1790", "1791", "1792", "1793"],
+        "correct": 1,
+        "explanation": "Bradstreet returned to England in 1791."
+    },
+    {
+        "question": "Who was sent by Bradstreet before his departure?",
+        "options": ["A military aide", "Charles Langlade", "A diplomatic envoy", "A trading agent"],
+        "correct": 1,
+        "explanation": "Charles Langlade was sent by Bradstreet."
+    },
+    {
+        "question": "What was Charles Langlade's role?",
+        "options": ["Military commander", "Cultural intermediary", "Trading post manager", "Government official"],
+        "correct": 1,
+        "explanation": "Langlade served as an important intermediary between cultures."
+    },
+    {
+        "question": "Who served as a country gentleman until his death?",
+        "options": ["Pontiac", "Gladwin", "Bradstreet", "Johnson"],
+        "correct": 1,
+        "explanation": "Gladwin served as a country gentleman until his death."
+    },
+    {
+        "question": "What was Gladwin's later occupation?",
+        "options": ["Military officer", "Country gentleman", "Government official", "Trader"],
+        "correct": 1,
+        "explanation": "Gladwin became a country gentleman in his later years."
+    },
+    {
+        "question": "Where did Captain William Howard go to reoccupy?",
+        "options": ["Detroit", "The British garrison", "Fort Pitt", "Mackinac"],
+        "correct": 1,
+        "explanation": "Howard went to reoccupy the British garrison."
+    },
+    {
+        "question": "What was Howard's mission regarding the British garrison?",
+        "options": ["To abandon it", "To save it", "To expand it", "To relocate it"],
+        "correct": 1,
+        "explanation": "Howard's mission was to save the British garrison."
+    },
+    {
+        "question": "Where were the headquarters moved to?",
+        "options": ["Detroit", "Green Bay", "Fort Pitt", "Quebec"],
+        "correct": 1,
+        "explanation": "The headquarters were moved to Green Bay."
+    },
+    {
+        "question": "What had Howard done before the uprising?",
+        "options": ["Served in the military", "Made a plan", "Worked as a trader", "Lived as a farmer"],
+        "correct": 1,
+        "explanation": "Howard had made a plan before the uprising occurred."
+    },
+    {
+        "question": "What plan had he made before the revolt?",
+        "options": ["An escape route", "A defense strategy", "Plans to help his situation", "A trading agreement"],
+        "correct": 2,
+        "explanation": "Howard had made plans that helped him during the revolt."
+    },
+    {
+        "question": "Where did he have numerous relatives?",
+        "options": ["In Detroit", "Among various groups", "In England", "In Quebec"],
+        "correct": 1,
+        "explanation": "Howard had numerous relatives in various locations."
+    },
+    {
+        "question": "During which war did he fight with the British?",
+        "options": ["French and Indian War", "Pontiac's Rebellion", "American Revolution", "War of 1812"],
+        "correct": 2,
+        "explanation": "Howard fought with the British during the American Revolution."
+    },
+    {
+        "question": "What revolution is mentioned in relation to American control?",
+        "options": ["French Revolution", "American Revolution", "Industrial Revolution", "Glorious Revolution"],
+        "correct": 1,
+        "explanation": "The American Revolution is mentioned in relation to the transition to American control."
+    },
+    {
+        "question": "What did he become reconciled to?",
+        "options": ["British rule", "American control", "French influence", "Spanish authority"],
+        "correct": 1,
+        "explanation": "Howard became reconciled to American control."
+    },
+    {
+        "question": "What was he known as in the nineteenth century?",
+        "options": ["The father of Detroit", "The father of the lake region", "The great mediator", "The frontier leader"],
+        "correct": 1,
+        "explanation": "Howard became known as 'the father of the lake region.'"
+    },
+    {
+        "question": "For what is he named in later references?",
+        "options": ["His military service", "His role in the region", "His trading activities", "His diplomatic efforts"],
+        "correct": 1,
+        "explanation": "He is remembered for his significant role in the development of the lake region."
+    },
+    {
+        "question": "What county in Wisconsin is mentioned?",
+        "options": ["Milwaukee County", "A county named for him", "Dane County", "Brown County"],
+        "correct": 1,
+        "explanation": "A county in Wisconsin was named after him."
+    },
+    {
+        "question": "After what uprising did the British establish permanent garrisons?",
+        "options": ["Pontiac's Rebellion", "The Indian uprising", "The American Revolution", "The French revolt"],
+        "correct": 1,
+        "explanation": "The British established permanent garrisons after the Indian uprising."
+    },
+    {
+        "question": "Around what fort did they reestablish presence?",
+        "options": ["Fort Pitt", "Fort St. Joseph", "Fort Detroit", "Fort Mackinac"],
+        "correct": 1,
+        "explanation": "The British reestablished presence around Fort St. Joseph."
+    },
+    {
+        "question": "What was the responsibility given to the Potawatomi?",
+        "options": ["Military defense", "Trade regulation", "Various responsibilities", "Diplomatic relations"],
+        "correct": 2,
+        "explanation": "The Potawatomi were given various responsibilities in the region."
+    },
+    {
+        "question": "Under whose supervision was the St. Joseph Valley following the suppression of the Indian outbreak?",
+        "options": ["British military", "American officials", "The commandant", "French administrators"],
+        "correct": 2,
+        "explanation": "The St. Joseph Valley was under the supervision of the commandant following the suppression of the outbreak."
+    },
+    
+    # Questions 76-100: British Rule and Conflicts
+    {
+        "question": "What year marked the beginning of British control over Michigan?",
+        "options": ["1759", "1760", "1763", "1764"],
+        "correct": 1,
+        "explanation": "1760 marked the beginning of British control, though it was formalized in 1763."
+    },
+    {
+        "question": "What major conflict preceded British control of the region?",
+        "options": ["King Philip's War", "French and Indian War", "Pontiac's Rebellion", "American Revolution"],
+        "correct": 1,
+        "explanation": "The French and Indian War (Seven Years' War) preceded British control."
+    },
+    {
+        "question": "What treaty established British authority in the area?",
+        "options": ["Treaty of Utrecht", "Treaty of Paris (1763)", "Treaty of Ghent", "Jay's Treaty"],
+        "correct": 1,
+        "explanation": "The Treaty of Paris (1763) established British authority over former French territories."
+    },
+    {
+        "question": "Who were the key British military leaders mentioned in this period?",
+        "options": ["Amherst and Wolfe", "Bradstreet and Bouquet", "Cornwallis and Clinton", "Burgoyne and Howe"],
+        "correct": 1,
+        "explanation": "Bradstreet and Bouquet were key British military leaders in the Great Lakes region."
+    },
+    {
+        "question": "What role did traders play during the British period?",
+        "options": ["They were banned", "They were essential to the economy", "They caused conflicts", "They were government officials"],
+        "correct": 1,
+        "explanation": "Traders were essential to the colonial economy and British-Native American relations."
+    },
+    {
+        "question": "Which Native American leaders are specifically mentioned in relation to British rule?",
+        "options": ["Tecumseh and Blue Jacket", "Pontiac and tribal chiefs", "Little Turtle and Black Hawk", "Sitting Bull and Crazy Horse"],
+        "correct": 1,
+        "explanation": "Pontiac and various tribal chiefs are mentioned in relation to British rule."
+    },
+    {
+        "question": "What was the significance of Detroit during British administration?",
+        "options": ["It was abandoned", "It became the regional center", "It lost importance", "It became a trading post"],
+        "correct": 1,
+        "explanation": "Detroit served as the major British administrative and military center in the region."
+    },
+    {
+        "question": "How did the British approach differ from previous European control?",
+        "options": ["More military focused", "More diplomatic", "Less organized", "More commercial"],
+        "correct": 0,
+        "explanation": "British control was more military-focused compared to the French approach of alliance and trade."
+    },
+    {
+        "question": "What economic activities were prominent during British rule?",
+        "options": ["Agriculture only", "Fur trading", "Manufacturing", "Mining"],
+        "correct": 1,
+        "explanation": "Fur trading remained the dominant economic activity during British rule."
+    },
+    {
+        "question": "Which forts were maintained or established by the British?",
+        "options": ["Only Detroit", "Detroit and other key posts", "New forts only", "No military presence"],
+        "correct": 1,
+        "explanation": "The British maintained Detroit and other strategic forts throughout the region."
+    },
+    {
+        "question": "What challenges did British authorities face in governing the region?",
+        "options": ["No major challenges", "Distance and Native resistance", "French interference", "Spanish attacks"],
+        "correct": 1,
+        "explanation": "Distance from British centers and Native American resistance created governance challenges."
+    },
+    {
+        "question": "How did the relationship between British officials and Native Americans develop?",
+        "options": ["Always hostile", "Gradually improved through diplomacy", "Remained unchanged", "Quickly deteriorated"],
+        "correct": 1,
+        "explanation": "Relations gradually improved through diplomatic efforts like those of Sir William Johnson."
+    },
+    {
+        "question": "What trading practices were established during this period?",
+        "options": ["Free trade", "Regulated British trade", "No trade allowed", "Spanish-controlled trade"],
+        "correct": 1,
+        "explanation": "The British established regulated trading practices to control Native American relations."
+    },
+    {
+        "question": "Which British policies affected the local population?",
+        "options": ["Trade regulations", "Land policies", "Military policies", "All of the above"],
+        "correct": 3,
+        "explanation": "British trade, land, and military policies all significantly affected local populations."
+    },
+    {
+        "question": "What military strategies did the British employ in the region?",
+        "options": ["Naval control only", "Fort-based defense system", "Mobile armies", "Militia only"],
+        "correct": 1,
+        "explanation": "The British relied on a system of forts for military control of the region."
+    },
+    {
+        "question": "How did British control impact existing trade networks?",
+        "options": ["Destroyed them", "Adapted and controlled them", "Ignored them", "Replaced them completely"],
+        "correct": 1,
+        "explanation": "The British adapted existing French-Native American trade networks to their control."
+    },
+    {
+        "question": "What administrative changes were implemented under British rule?",
+        "options": ["None", "Military government", "Civilian colonies", "Native American rule"],
+        "correct": 1,
+        "explanation": "The British initially implemented military government in the newly acquired territories."
+    },
+    {
+        "question": "Which settlements grew in importance during this period?",
+        "options": ["Only new British towns", "Detroit and key trading posts", "Native American villages", "French settlements only"],
+        "correct": 1,
+        "explanation": "Detroit and strategic trading posts grew in importance under British rule."
+    },
+    {
+        "question": "What role did the Great Lakes play in British strategy?",
+        "options": ["No strategic importance", "Key transportation and communication routes", "Barriers to expansion", "Sources of conflict only"],
+        "correct": 1,
+        "explanation": "The Great Lakes were crucial transportation and communication routes for British administration."
+    },
+    {
+        "question": "How did British rule affect relationships between different Native American groups?",
+        "options": ["Had no effect", "Created new alliances and conflicts", "United all tribes", "Eliminated tribal differences"],
+        "correct": 1,
+        "explanation": "British policies and presence created new dynamics in inter-tribal relationships."
+    },
+    {
+        "question": "What were the main sources of conflict during British administration?",
+        "options": ["Religious differences", "Land disputes and cultural clashes", "Economic competition only", "Language barriers"],
+        "correct": 1,
+        "explanation": "Land disputes, cultural differences, and competing interests were major sources of conflict."
+    },
+    {
+        "question": "Which British officials played key roles in regional governance?",
+        "options": ["Only military commanders", "Governors and Indian agents", "Trading company officials", "Religious leaders"],
+        "correct": 1,
+        "explanation": "Colonial governors and Indian agents like Sir William Johnson played crucial governance roles."
+    },
+    {
