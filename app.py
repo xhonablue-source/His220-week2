@@ -144,14 +144,14 @@ def award_xp(amount, reason=""):
 
 def display_quiz():
     st.markdown("# 🏛️ Ultimate Michigan History Challenge")
-    st.markdown("## 100 Questions - Maximum XP")
+    st.markdown("## 100 Questions - Immediate Feedback")
     
     if not st.session_state.quiz_started:
         st.markdown("""
         ### Challenge Overview:
         - **100 Sequential Questions**
+        - **Immediate color-coded feedback**
         - **Up to 3,000+ XP possible**
-        - **Epic Achievements**
         
         ### XP System:
         - **Perfect (100%)**: 2,000 XP
@@ -176,16 +176,58 @@ def display_quiz():
         mins, secs = divmod(int(elapsed), 60)
         st.markdown(f"**Time: {mins:02d}:{secs:02d}**")
     
-    with st.form("quiz"):
-        st.markdown("### Answer all 100 questions:")
-        for i, q in enumerate(QUESTIONS):
-            st.markdown(f"**Q{i+1}:** {q['question']}")
-            answer = st.radio("", q["options"], key=f"q_{i}", index=st.session_state.answers.get(i))
-            if answer:
-                st.session_state.answers[i] = q["options"].index(answer)
-            st.markdown("---")
+    st.markdown("### Answer all 100 questions:")
+    
+    for i, q in enumerate(QUESTIONS):
+        # Check if answered
+        user_answer = st.session_state.answers.get(i)
+        is_correct = user_answer == q["correct"] if user_answer is not None else None
         
-        if st.form_submit_button("🎯 SUBMIT QUIZ") and len(st.session_state.answers) == 100:
+        # Color-coded question display
+        if is_correct == True:
+            st.markdown(f"""
+            <div style='background-color: #d4edda; border-left: 5px solid #28a745; padding: 10px; margin: 10px 0; border-radius: 5px;'>
+                <strong style='color: #155724;'>✅ Q{i+1}: {q['question']}</strong>
+            </div>
+            """, unsafe_allow_html=True)
+        elif is_correct == False:
+            st.markdown(f"""
+            <div style='background-color: #f8d7da; border-left: 5px solid #dc3545; padding: 10px; margin: 10px 0; border-radius: 5px;'>
+                <strong style='color: #721c24;'>❌ Q{i+1}: {q['question']}</strong>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"**Q{i+1}:** {q['question']}")
+        
+        # Radio buttons with callback
+        answer = st.radio(
+            "Choose your answer:",
+            q["options"],
+            key=f"q_{i}",
+            index=user_answer if user_answer is not None else None
+        )
+        
+        # Update answer and rerun to show color
+        if answer:
+            new_answer = q["options"].index(answer)
+            if st.session_state.answers.get(i) != new_answer:
+                st.session_state.answers[i] = new_answer
+                st.rerun()
+        
+        # Show explanation if answered incorrectly
+        if is_correct == False:
+            st.error(f"Correct answer: {q['options'][q['correct']]}")
+            st.info(f"💡 {q['explanation']}")
+        elif is_correct == True:
+            st.success("Correct!")
+            with st.expander("📖 Learn more"):
+                st.info(q['explanation'])
+        
+        st.markdown("---")
+    
+    # Submit button
+    if len(st.session_state.answers) == 100:
+        if st.button("🎯 COMPLETE QUIZ & VIEW FINAL RESULTS"):
             process_results()
 
 def process_results():
