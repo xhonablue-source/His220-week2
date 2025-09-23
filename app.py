@@ -6,7 +6,6 @@ Maximum XP Challenge - CognitiveCloud.ai Learning Platform
 import streamlit as st
 import time
 import json
-import random
 from datetime import datetime
 
 # Configure page
@@ -35,6 +34,12 @@ if 'final_score' not in st.session_state:
 QUESTIONS = [
     # Questions 1-25: Early Settlement and Native Americans
     {
+        "question": "What was the land that became Michigan inhabited by before Europeans arrived?",
+        "options": ["Empty wilderness", "Various Native American peoples", "French settlers", "Spanish explorers"],
+        "correct": 1,
+        "explanation": "Colonial governors and Indian agents like Sir William Johnson played crucial governance roles."
+    },
+    {
         "question": "How did the transition from French to British rule occur?",
         "options": ["Peacefully through treaty", "Through military conquest and negotiation", "French abandoned the region", "Native Americans chose British rule"],
         "correct": 1,
@@ -53,7 +58,6 @@ def award_xp(amount: int, reason: str = ""):
     """Award maximum XP with spectacular celebrations"""
     st.session_state.total_xp += amount
     
-    # Milestone achievements with increasing rewards
     milestones = [
         (500, "Rising Scholar"),
         (1000, "History Enthusiast"),
@@ -68,19 +72,19 @@ def award_xp(amount: int, reason: str = ""):
             st.session_state.achievements.append(title)
             if threshold >= 2000:
                 st.balloons()
-                st.success(f"🏆 LEGENDARY ACHIEVEMENT UNLOCKED: {title}! ({threshold}+ XP)")
+                st.success(f"🏆 LEGENDARY ACHIEVEMENT: {title}! ({threshold}+ XP)")
             else:
-                st.success(f"🎖️ Achievement Unlocked: {title}! ({threshold}+ XP)")
+                st.success(f"🎖️ Achievement: {title}! ({threshold}+ XP)")
     
     if amount > 0:
         st.success(f"⭐ +{amount} XP earned! {reason}")
 
 def display_100_question_quiz():
-    """Display the complete 100-question quiz with maximum XP rewards"""
+    """Display the complete 100-question quiz"""
     
     st.markdown("# 🏛️ The Ultimate Michigan History Challenge")
-    st.markdown("## 100 Questions - Maximum XP - Epic Achievement System")
-    st.markdown("**Test your complete mastery of Michigan's First Residents and Colonial Period!**")
+    st.markdown("## 100 Questions - Maximum XP - Epic Achievements")
+    st.markdown("**Test your mastery of Michigan's First Residents and Colonial Period!**")
     
     if not st.session_state.quiz_started:
         st.markdown("""
@@ -88,19 +92,15 @@ def display_100_question_quiz():
         - **100 Sequential Questions** covering all major topics
         - **Maximum XP Rewards**: Up to 3,000+ XP possible
         - **Epic Achievements**: Unlock legendary titles
-        - **Complete Mastery Test**: Prove your historical expertise
         
         ### 🏆 XP Scoring System:
         - **Perfect Score (100%)**: 1,500 XP + 500 Bonus = **2,000 XP**
         - **Excellent (90-99%)**: 1,350-1,485 XP + 300 Bonus
-        - **Very Good (80-89%)**: 1,200-1,335 XP + 200 Bonus  
-        - **Good (70-79%)**: 1,050-1,185 XP + 100 Bonus
-        - **Fair (60-69%)**: 900-1,035 XP + 50 Bonus
+        - **Very Good (80-89%)**: 1,200-1,335 XP + 200 Bonus
         
-        ### 🎉 Special Achievements Available:
-        - **Perfect Century**: 100% score with all explanations read
+        ### 🎉 Special Achievements:
+        - **Perfect Century**: 100% score
         - **Speed Demon**: Complete in under 30 minutes
-        - **Scholar Supreme**: Read all historical explanations
         - **Michigan Master**: Achieve ultimate XP threshold
         """)
         
@@ -116,25 +116,20 @@ def display_100_question_quiz():
         display_final_results()
         return
     
-    # Quiz progress indicator
     progress = len(st.session_state.answers) / 100
     st.progress(progress)
     st.caption(f"Progress: {len(st.session_state.answers)}/100 questions answered")
     
-    # Timer display
     if hasattr(st.session_state, 'start_time'):
         elapsed_time = time.time() - st.session_state.start_time
         minutes, seconds = divmod(int(elapsed_time), 60)
         st.markdown(f"**Time Elapsed: {minutes:02d}:{seconds:02d}**")
     
-    # Main quiz form
     with st.form("complete_100_quiz"):
         st.markdown("### Answer all 100 questions:")
         
-        # Display all questions in a scrollable format
         for i, q in enumerate(QUESTIONS):
             st.markdown(f"**Question {i+1}:** {q['question']}")
-            
             answer = st.radio(
                 "Choose your answer:",
                 options=q["options"],
@@ -147,41 +142,29 @@ def display_100_question_quiz():
             
             st.markdown("---")
         
-        # Submit button
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            submitted = st.form_submit_button("🎯 SUBMIT COMPLETE QUIZ (100 QUESTIONS)")
+            submitted = st.form_submit_button("🎯 SUBMIT COMPLETE QUIZ")
         
         if submitted and len(st.session_state.answers) == 100:
             process_quiz_results()
 
 def process_quiz_results():
-    """Process the 100-question quiz with maximum XP calculation"""
+    """Process quiz with maximum XP"""
+    correct_count = sum(1 for i, q in enumerate(QUESTIONS) 
+                       if i in st.session_state.answers and st.session_state.answers[i] == q["correct"])
     
-    correct_count = 0
-    explanations_viewed = 0
+    completion_time = (time.time() - st.session_state.start_time) / 60 if hasattr(st.session_state, 'start_time') else 0
     
-    # Calculate correct answers
-    for i, q in enumerate(QUESTIONS):
-        if i in st.session_state.answers and st.session_state.answers[i] == q["correct"]:
-            correct_count += 1
-    
-    # Calculate completion time
-    completion_time = time.time() - st.session_state.start_time if hasattr(st.session_state, 'start_time') else 0
-    completion_minutes = completion_time / 60
-    
-    # Store results
     st.session_state.final_score = (correct_count / 100) * 100
     st.session_state.correct_count = correct_count
-    st.session_state.completion_time = completion_minutes
+    st.session_state.completion_time = completion_time
     st.session_state.quiz_completed = True
     
-    # Calculate XP with maximum rewards
-    base_xp = correct_count * 15  # 15 XP per correct answer
+    base_xp = correct_count * 15
     performance_bonus = 0
     special_bonuses = 0
     
-    # Performance tier bonuses
     score_pct = st.session_state.final_score
     if score_pct == 100:
         performance_bonus = 500
@@ -193,137 +176,78 @@ def process_quiz_results():
         performance_bonus = 400
     elif score_pct >= 90:
         performance_bonus = 300
-    elif score_pct >= 85:
-        performance_bonus = 250
     elif score_pct >= 80:
         performance_bonus = 200
-    elif score_pct >= 75:
-        performance_bonus = 150
     elif score_pct >= 70:
         performance_bonus = 100
     elif score_pct >= 60:
         performance_bonus = 50
     
-    # Speed bonus
-    if completion_minutes < 30 and score_pct >= 80:
+    if completion_time < 30 and score_pct >= 80:
         if "Speed Demon" not in st.session_state.achievements:
             st.session_state.achievements.append("Speed Demon")
             special_bonuses += 150
     
-    # Century Club achievement
     if "Century Club Champion" not in st.session_state.achievements:
         st.session_state.achievements.append("Century Club Champion")
         special_bonuses += 100
     
     total_xp = base_xp + performance_bonus + special_bonuses
-    award_xp(total_xp, f"Complete 100-Question Challenge: {score_pct:.1f}%")
-    
+    award_xp(total_xp, f"Challenge Complete: {score_pct:.1f}%")
     st.rerun()
 
 def display_final_results():
-    """Display spectacular final results with maximum celebration"""
-    
+    """Display final results"""
     st.markdown("# 🎉 CHALLENGE COMPLETE!")
-    st.markdown("## Your Ultimate Michigan History Results")
+    st.markdown("## Your Michigan History Results")
     
     score_pct = st.session_state.final_score
     correct_count = st.session_state.correct_count
     
-    # Results overview
     col1, col2, col3, col4 = st.columns(4)
-    
     with col1:
         st.metric("Final Score", f"{score_pct:.1f}%", delta=f"{correct_count}/100")
-    
     with col2:
-        completion_time = st.session_state.completion_time
-        st.metric("Completion Time", f"{completion_time:.1f} min")
-    
+        st.metric("Time", f"{st.session_state.completion_time:.1f} min")
     with col3:
-        st.metric("Total XP Earned", st.session_state.total_xp)
-    
+        st.metric("Total XP", st.session_state.total_xp)
     with col4:
         st.metric("Achievements", len(st.session_state.achievements))
     
-    # Performance analysis
-    st.markdown("### 📊 Detailed Performance Analysis")
+    st.markdown("### 📊 Performance Analysis")
     
     if score_pct == 100:
-        st.success("🏆 PERFECT SCORE! You are a TRUE MICHIGAN HISTORY MASTER!")
+        st.success("🏆 PERFECT SCORE! You are a MICHIGAN HISTORY MASTER!")
         st.balloons()
-    elif score_pct >= 95:
-        st.success("🌟 OUTSTANDING! Near-perfect mastery of Michigan history!")
     elif score_pct >= 90:
-        st.success("⭐ EXCELLENT! You have exceptional knowledge of Michigan's past!")
-    elif score_pct >= 85:
-        st.success("✨ VERY GOOD! Strong understanding across all topics!")
+        st.success("⭐ EXCELLENT! Exceptional knowledge!")
     elif score_pct >= 80:
-        st.info("📚 GOOD WORK! Solid grasp of Michigan historical concepts!")
+        st.info("📚 GOOD WORK! Strong understanding!")
     elif score_pct >= 70:
-        st.info("📖 FAIR PROGRESS! Continue studying for even better results!")
+        st.info("📖 FAIR! Continue studying!")
     else:
-        st.warning("📝 NEEDS IMPROVEMENT! Review the material and try again!")
+        st.warning("📝 Review the material and try again!")
     
-    # Question-by-question breakdown
-    with st.expander("🔍 Complete Question Analysis (Click to expand)"):
+    with st.expander("🔍 Question Analysis"):
         for i, q in enumerate(QUESTIONS):
             user_answer = st.session_state.answers.get(i)
-            correct_answer = q["correct"]
-            
-            if user_answer == correct_answer:
-                st.success(f"✅ Question {i+1}: CORRECT")
+            if user_answer == q["correct"]:
+                st.success(f"✅ Q{i+1}: CORRECT")
             else:
-                st.error(f"❌ Question {i+1}: INCORRECT")
-                st.info(f"Your answer: {q['options'][user_answer] if user_answer is not None else 'No answer'}")
-                st.info(f"Correct answer: {q['options'][correct_answer]}")
-            
-            with st.expander(f"Historical Context - Question {i+1}"):
-                st.markdown(f"**Question:** {q['question']}")
-                st.markdown(f"**Explanation:** {q['explanation']}")
+                st.error(f"❌ Q{i+1}: INCORRECT")
+                st.info(f"Correct: {q['options'][q['correct']]}")
+            with st.expander(f"Context - Q{i+1}"):
+                st.markdown(f"**{q['question']}**")
+                st.markdown(f"{q['explanation']}")
     
-    # Achievement showcase
     if st.session_state.achievements:
-        st.markdown("### 🏆 Your Legendary Achievements")
-        
-        achievement_cols = st.columns(min(len(st.session_state.achievements), 3))
-        for i, achievement in enumerate(st.session_state.achievements):
-            with achievement_cols[i % 3]:
-                if "ULTIMATE" in achievement or "Perfect" in achievement:
-                    st.markdown(f"""
-                    <div style='background: linear-gradient(45deg, #FFD700, #FF6B35); 
-                               color: white; padding: 15px; border-radius: 15px; 
-                               text-align: center; margin: 10px; border: 3px solid #FF6B35;'>
-                        <h4>🏆 {achievement}</h4>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-                    <div style='background: linear-gradient(45deg, #4ECDC4, #44A08D); 
-                               color: white; padding: 12px; border-radius: 10px; 
-                               text-align: center; margin: 8px;'>
-                        <strong>🎖️ {achievement}</strong>
-                    </div>
-                    """, unsafe_allow_html=True)
+        st.markdown("### 🏆 Achievements")
+        for achievement in st.session_state.achievements:
+            st.success(f"🏆 {achievement}")
     
-    # Final celebration message
-    if score_pct >= 90:
-        st.markdown("""
-        ### 🎊 CONGRATULATIONS, HISTORY CHAMPION!
-        
-        You have demonstrated exceptional mastery of Michigan's early history. Your knowledge of:
-        - Indigenous peoples and archaeological discoveries
-        - British colonial administration and conflicts  
-        - Post-revolutionary transitions and key figures
-        - Complex historical relationships and causation
-        
-        **Makes you a true expert in Michigan historical studies!**
-        """)
-    
-    # Restart option
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("🔄 RETAKE CHALLENGE FOR HIGHER SCORE"):
-            # Reset quiz state
+        if st.button("🔄 RETAKE CHALLENGE"):
             st.session_state.quiz_started = False
             st.session_state.answers = {}
             st.session_state.quiz_completed = False
@@ -331,12 +255,9 @@ def display_final_results():
             st.rerun()
 
 def main():
-    """Main application for the 100-question ultimate challenge"""
-    
-    # Epic styling
+    """Main application"""
     st.markdown("""
     <style>
-    .main > div { padding-top: 1rem; }
     .stButton > button {
         width: 100%;
         border-radius: 15px;
@@ -346,68 +267,47 @@ def main():
         padding: 1rem;
         border: none;
         font-size: 1.1em;
-        transition: all 0.3s ease;
-    }
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(118, 75, 162, 0.5);
-    }
-    .challenge-header {
-        background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 20px;
-        text-align: center;
-        margin: 20px 0;
-        box-shadow: 0 15px 35px rgba(247, 147, 30, 0.3);
     }
     </style>
     """, unsafe_allow_html=True)
     
-    # Epic header
     st.markdown("""
-    <div class='challenge-header'>
+    <div style='background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); 
+                color: white; padding: 30px; border-radius: 20px; text-align: center; margin: 20px 0;'>
         <h1>🏛️ HIS220: ULTIMATE MICHIGAN HISTORY CHALLENGE</h1>
         <h2>100 Questions • Maximum XP • Legendary Achievements</h2>
         <h3>CognitiveCloud.ai Learning Platform</h3>
     </div>
     """, unsafe_allow_html=True)
     
-    # Sidebar with current stats
     st.sidebar.markdown("# 🎯 Challenge Status")
     st.sidebar.metric("Total XP", st.session_state.total_xp)
-    st.sidebar.metric("Achievements Unlocked", len(st.session_state.achievements))
+    st.sidebar.metric("Achievements", len(st.session_state.achievements))
     
     if st.session_state.quiz_completed:
         st.sidebar.metric("Final Score", f"{st.session_state.final_score:.1f}%")
-        st.sidebar.metric("Questions Correct", f"{st.session_state.correct_count}/100")
+        st.sidebar.metric("Correct", f"{st.session_state.correct_count}/100")
     
-    # Recent achievements
     if st.session_state.achievements:
         st.sidebar.markdown("### 🏆 Recent Achievements")
         for achievement in st.session_state.achievements[-3:]:
             st.sidebar.success(f"🏆 {achievement}")
     
-    # Main quiz display
     display_100_question_quiz()
     
-    # Footer
     st.markdown("---")
     st.markdown("""
-    <div style='text-align: center; padding: 20px; background: #1f1f1f; color: white; border-radius: 15px;'>
+    <div style='text-align: center; padding: 20px; background: #1f1f1f; 
+                color: white; border-radius: 15px;'>
         <h3>🏛️ MICHIGAN HISTORY ULTIMATE CHALLENGE</h3>
-        <p><strong>100 Questions • Complete Historical Mastery • Maximum XP Achievement System</strong></p>
+        <p><strong>100 Questions • Complete Mastery • Maximum XP</strong></p>
         <p>CognitiveCloud.ai Learning Platform - HIS220</p>
     </div>
     """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
-        "question": "What was the land that became Michigan inhabited by before Europeans arrived?",
-        "options": ["Empty wilderness", "Various Native American peoples", "French settlers", "Spanish explorers"],
-        "correct": 1,
-        "explanation": "Michigan was inhabited by various indigenous peoples for thousands of years before European contact."
+explanation": "Michigan was inhabited by various indigenous peoples for thousands of years before European contact."
     },
     {
         "question": "Why did Europeans initially call Native Americans 'Indians'?",
@@ -989,6 +889,4 @@ if __name__ == "__main__":
         "question": "Which British officials played key roles in regional governance?",
         "options": ["Only military commanders", "Governors and Indian agents", "Trading company officials", "Religious leaders"],
         "correct": 1,
-        "explanation": "Colonial governors and Indian agents like Sir William Johnson played crucial governance roles."
-    },
-    {
+        "
