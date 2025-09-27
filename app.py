@@ -34,7 +34,7 @@ if 'completion_time' not in st.session_state:
     st.session_state.completion_time = 0
 
 # --- 100 Sensible Questions Based on the PDF Text ---
-# (The 100-question list remains the same as it was previously validated)
+# (The 100-question list remains the same)
 QUESTIONS = [
     {"question": "English observers *incorrectly* depicted French habitants as primarily interested in what activity?", "options": ["Working the fields", "Trading furs", "Playing", "Fishing"], "correct": 2, "explanation": "English and American observers inaccurately characterized the habitants as 'more interested in playing than in working.'"},
     {"question": "What kind of people were the French habitants described as in *actuality*?", "options": ["Irresponsible dreamers", "Hard-working, conservative folk", "Wealthy merchants", "Vagrant adventurers"], "correct": 1, "explanation": "The text states the habitants were, as a group, hard-working, conservative folk of good, solid peasant stock."},
@@ -182,18 +182,29 @@ def award_xp(amount, reason=""):
 
 
 def display_quiz():
-    st.markdown("# 🏛️ Quiz 1: HIS 220 History of Michigan")
     st.markdown("## 100 Questions - Immediate Feedback")
     
     if not st.session_state.quiz_started:
-        st.markdown(f"""
-        ### Source: *Michigan A History of the Wolverine State* by Dunbar & May
-        
+        # Hyperlink to Main Page
+        st.markdown(f"**<a href='https://his220-launcher.streamlit.app/' target='_self'>⬅️ Go back to Main Page/Quiz Launcher</a>**", unsafe_allow_html=True)
+
+        st.markdown("""
         ### Challenge Overview:
         - **100 Sequential Questions** based on the provided text.
         - **Immediate color-coded feedback**
         - **Up to 3,000+ XP possible**
         """)
+
+        # Resources Section (Added)
+        with st.expander("📚 Study Resources"):
+            st.markdown(f"""
+            This quiz is based on **HIS 220 Week 1-2** content from *Michigan A History of the Wolverine State* by Dunbar & May.
+
+            **To find the answers:** Review the relevant sections of the textbook or the PDF text you uploaded concerning the **French colonial period, the fur trade, and Pontiac's Uprising.**
+            
+            *If available online, you may search for excerpts or digital copies of the **Third Revised Edition** of the book.*
+            """)
+        
         if st.button("🚀 BEGIN QUIZ 1", key="start"):
             st.session_state.quiz_started = True
             st.session_state.start_time = time.time()
@@ -258,8 +269,8 @@ def display_quiz():
         
         # Show explanation
         if is_correct == False:
-            st.error(f"Correct answer: {q['options'][q['correct']]}")
-            st.info(f"💡 {q['explanation']}")
+            st.error(f"Correct answer: {q['options'][q['correct']]}", icon="💡")
+            st.info(f"📖 **Explanation:** {q['explanation']}")
         elif is_correct == True:
             st.success("Correct!")
             with st.expander("📖 Learn more"):
@@ -347,15 +358,20 @@ def display_results():
         for ach in st.session_state.achievements:
             st.success(f"🏆 {ach}")
     
-    if st.button("🔄 RETAKE"):
+    if st.button("🔄 RETAKE QUIZ"):
         st.session_state.quiz_started = False
         st.session_state.answers = {}
         st.session_state.quiz_completed = False
         st.session_state.total_xp = 0
         st.session_state.achievements = []
         st.rerun()
+    
+    # Hyperlink added after results
+    st.markdown("---")
+    st.markdown(f"**<a href='https://his220-launcher.streamlit.app/' target='_self'>⬅️ Go back to Main Page/Quiz Launcher</a>**", unsafe_allow_html=True)
 
-# --- Custom Styling (The provided CSS is kept) ---
+
+# --- Custom Styling (Kept simple) ---
 st.markdown("""
 <style>
 .stButton > button {
@@ -369,13 +385,11 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- Title Header (Updated) ---
-st.markdown(f"""
-<div style='background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);  
-            color: white; padding: 30px; border-radius: 20px; text-align: center; margin: 20px 0;'>
+# --- Title Header (Updated to remove previous styling) ---
+st.markdown("""
+<div style='text-align: center; margin: 20px 0;'>
     <h1>🏛️ QUIZ 1: HIS 220 HISTORY OF MICHIGAN</h1>
     <h2>Source: "Michigan A History of the Wolverine State"</h2>
-    <h3>100 Questions • Maximum XP • Legendary Achievements</h3>
 </div>
 """, unsafe_allow_html=True)
 
