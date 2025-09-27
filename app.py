@@ -34,7 +34,6 @@ if 'completion_time' not in st.session_state:
     st.session_state.completion_time = 0
 
 # --- 100 Sensible Questions Based on the PDF Text ---
-# (The 100-question list remains the same for brevity)
 QUESTIONS = [
     {"question": "English observers *incorrectly* depicted French habitants as primarily interested in what activity?", "options": ["Working the fields", "Trading furs", "Playing", "Fishing"], "correct": 2, "explanation": "English and American observers inaccurately characterized the habitants as 'more interested in playing than in working.'"},
     {"question": "What kind of people were the French habitants described as in *actuality*?", "options": ["Irresponsible dreamers", "Hard-working, conservative folk", "Wealthy merchants", "Vagrant adventurers"], "correct": 1, "explanation": "The text states the habitants were, as a group, hard-working, conservative folk of good, solid peasant stock."},
@@ -154,254 +153,170 @@ QUESTIONS = [
     {"question": "What was a consequence of the British distributing presents *before* 1760?", "options": ["French were pleased", "Western tribes gained favor", "Prices for furs dropped", "War broke out"], "correct": 1, "explanation": "Western tribes gained favor."},
     {"question": "What kind of folk were the French habitants, according to the author?", "options": ["Lazy", "Irresponsible", "Hard-working", "Playful"], "correct": 2, "explanation": "Hard-working."},
     {"question": "The Huron mission moved to Bois Blanc Island in what year?", "options": ["1713", "1742", "1760", "1796"], "correct": 1, "explanation": "1742."},
-    {"question": "Detroit's trade to the south focused on the valleys of which rivers?", "options": ["Ohio and Mississippi", "Maumee and Wabash", "Detroit and St. Lawrence", "Potomac and Hudson"], "correct": 1, "explanation": "Maumee and Wabash river valleys."},
-    {"question": "The French habitants were accurately described as being what type of stock?", "options": ["Noble", "Peasant", "Military", "Merchant"], "correct": 1, "explanation": "Peasant stock."},
-    {"question": "What was the British policy on paying for furs *before* 1760?", "options": ["More than the French", "Less than the French", "The same rate", "Refused to pay"], "correct": 0, "explanation": "More than the French."},
-    {"question": "Who led the most formidable Indian uprising?", "options": ["Tecumseh", "Chief Logan", "Pontiac", "Shabbona"], "correct": 2, "explanation": "Pontiac."},
-    {"question": "What was the final blow that removed any hope of French aid?", "options": ["Pontiac's death", "French land cession", "British victory at Detroit", "American intervention"], "correct": 1, "explanation": "French land cession."},
-    {"question": "What did the French authorities try to stop the sale of to the Native Americans?", "options": ["Guns", "Whiskey/Liquor", "Tobacco", "Blankets"], "correct": 1, "explanation": "Liquor."},
-    {"question": "The isolated life of Detroiters during the French period was described as 'in a sense' what?", "options": ["Harsh", "Idyllic", "Dangerous", "Temporary"], "correct": 1, "explanation": "Idyllic."},
-    {"question": "What year did British control of Michigan begin?", "options": ["1759", "1760", "1763", "1776"], "correct": 1, "explanation": "1760."},
-    {"question": "What policy did General Amherst impose 'no leniency' for?", "options": ["French authorities", "British soldiers", "Misbehaving Indians", "Fur traders"], "correct": 2, "explanation": "Misbehaving Indians."},
-    {"question": "The Huron mission was ministered to by which Jesuit missionary?", "options": ["Father Louis Hennepin", "Father Jacques Marquette", "Father Armand de la Richardie", "Father Isaac Jogues"], "correct": 2, "explanation": "Father Armand de la Richardie."},
+    {"question": "What activity was the French authorities' key failure in shifting the economic emphasis away from?", "options": ["Agriculture", "The fur trade", "The lumber industry", "The fishing trade"], "correct": 1, "explanation": "The key failure of the French authorities was their inability to shift New France's economic focus away from the highly profitable, but volatile, fur trade."},
 ]
 
+# --- Function to Start Quiz ---
+def start_quiz():
+    st.session_state.quiz_started = True
+    st.session_state.start_time = time.time()
+    st.session_state.answers = {}
+    st.session_state.current_question_index = 0
+    st.session_state.quiz_completed = False
+    st.session_state.total_xp = 0
+    st.session_state.final_score = 0
+    st.session_state.completion_time = 0
+    st.session_state.show_results = False
 
-def award_xp(amount, reason=""):
-    st.session_state.total_xp += amount
-    milestones = [(500, "Rising Scholar"), (1000, "History Enthusiast"), (1500, "Michigan Expert"), (2000, "Colonial Master"), (2500, "Historical Analyst"), (3000, "ULTIMATE CHAMPION")]
-    for threshold, title in milestones:
-        if st.session_state.total_xp >= threshold and title not in st.session_state.achievements:
-            st.session_state.achievements.append(title)
-            if threshold >= 2000:
-                st.balloons()
-            st.sidebar.success(f"🏆 {title}! ({threshold}+ XP)")
-    
-    if amount > 0:
-        st.sidebar.success(f"⭐ +{amount} XP! {reason}")
-
-
-def display_quiz():
-    st.markdown("## 100 Questions - Immediate Feedback")
-    
-    if not st.session_state.quiz_started:
-        # Hyperlink to Main Page
-        st.markdown(f"**<a href='https://his220-launcher.streamlit.app/' target='_self'>⬅️ Go back to Main Page/Quiz Launcher</a>**", unsafe_allow_html=True)
-
-        st.markdown("""
-        ### Challenge Overview:
-        - **100 Sequential Questions** based on the provided text.
-        - **Immediate color-coded feedback**
-        - **Up to 3,000+ XP possible**
-        """)
-
-        # Resources Section (UPDATED)
-        with st.expander("📚 Study Resources (Textbook Links)"):
-            st.markdown(f"""
-            This quiz is based on **HIS 220 Week 1-2** content from **Michigan: A History of the Wolverine State** by Willis F. Dunbar and Georges May (Third Revised Edition, 1995).
-
-            To find the answers, review the chapters covering the **French colonial period, the fur trade, and Pontiac's Uprising.**
-
-            **Online Access:**
-            * **Borrow/Stream:** [Michigan: A History of the Wolverine State (Internet Archive)](https://archive.org/details/michiganhistoryo01dunb)
-            * **View Snippets:** [Michigan: A History of the Wolverine State (Google Books)](https://books.google.com/books/about/Michigan.html?id=HqGWEAnByeMC)
-            """)
+# --- Function to Submit Answer ---
+def submit_answer(q_index, selected_option):
+    if q_index not in st.session_state.answers:
+        st.session_state.answers[q_index] = selected_option
+        st.session_state.xp_earned = 0
         
-        if st.button("🚀 BEGIN QUIZ 1", key="start"):
-            st.session_state.quiz_started = True
-            st.session_state.start_time = time.time()
-            st.rerun()
-        return
-    
-    if st.session_state.quiz_completed:
-        display_results()
-        return
-    
-    # Progress Bar
-    st.progress(len(st.session_state.answers) / 100)
-    st.caption(f"Progress: {len(st.session_state.answers)}/100")
-    
-    if hasattr(st.session_state, 'start_time'):
-        elapsed = time.time() - st.session_state.start_time
-        mins, secs = divmod(int(elapsed), 60)
-        st.markdown(f"**Time: {mins:02d}:{secs:02d}**")
-    
-    st.markdown("### Answer all 100 questions:")
-    
-    # Display Questions
-    for i, q in enumerate(QUESTIONS):
-        user_answer = st.session_state.answers.get(i)
-        is_correct = user_answer == q["correct"] if user_answer is not None else None
+        # Check if the answer is correct
+        question_data = QUESTIONS[q_index]
+        is_correct = (selected_option == question_data['correct'])
         
-        # Color-coded question display
-        if is_correct == True:
-            st.markdown(f"""
-            <div style='background-color: #d4edda; border-left: 5px solid #28a745; padding: 10px; margin: 10px 0; border-radius: 5px;'>
-                <strong style='color: #155724;'>✅ Q{i+1}: {q['question']}</strong>
-            </div>
-            """, unsafe_allow_html=True)
-        elif is_correct == False:
-            st.markdown(f"""
-            <div style='background-color: #f8d7da; border-left: 5px solid #dc3545; padding: 10px; margin: 10px 0; border-radius: 5px;'>
-                <strong style='color: #721c24;'>❌ Q{i+1}: {q['question']}</strong>
-            </div>
-            """, unsafe_allow_html=True)
+        # Calculate XP
+        if is_correct:
+            xp_gain = 100
+            st.session_state.total_xp += xp_gain
+            st.session_state.xp_earned = xp_gain
         else:
-            st.markdown(f"**Q{i+1}:** {q['question']}")
-        
-        # Radio buttons
-        answer = st.radio(
-            "Choose your answer:",
-            q["options"],
-            key=f"q_{i}",
-            index=user_answer if user_answer is not None else None
-        )
-        
-        # Update answer and rerun to show color
-        if answer:
-            try:
-                new_answer = q["options"].index(answer)
-            except ValueError:
-                return
+            st.session_state.xp_earned = 0 # No XP for wrong answer
             
-            if st.session_state.answers.get(i) != new_answer:
-                st.session_state.answers[i] = new_answer
-                time.sleep(0.01)
-                st.rerun()
-        
-        # Show explanation
-        if is_correct == False:
-            st.error(f"Correct answer: {q['options'][q['correct']]}", icon="💡")
-            st.info(f"📖 **Explanation:** {q['explanation']}")
-        elif is_correct == True:
-            st.success("Correct!")
-            with st.expander("📖 Learn more"):
-                st.info(q['explanation'])
-        
-        st.markdown("---")
-    
-    # Submit button
-    if len(st.session_state.answers) == 100:
-        if st.button("🎯 COMPLETE QUIZ & VIEW FINAL RESULTS"):
-            process_results()
+        # Move to the next question or complete the quiz
+        if st.session_state.current_question_index < len(QUESTIONS) - 1:
+            st.session_state.current_question_index += 1
+        else:
+            end_quiz()
 
-def process_results():
-    correct = sum(1 for i, q in enumerate(QUESTIONS) if i in st.session_state.answers and st.session_state.answers[i] == q["correct"])
-    st.session_state.final_score = (correct / 100) * 100
-    st.session_state.correct_count = correct
-    st.session_state.completion_time = (time.time() - st.session_state.start_time) / 60 if hasattr(st.session_state, 'start_time') else 0
+# --- Function to Complete Quiz and Show Results ---
+def end_quiz():
     st.session_state.quiz_completed = True
+    st.session_state.end_time = time.time()
+    st.session_state.completion_time = st.session_state.end_time - st.session_state.start_time
     
-    # XP Calculation Logic
-    base_xp = correct * 15
-    bonus = 0
+    score = 0
+    for i, question in enumerate(QUESTIONS):
+        if i in st.session_state.answers and st.session_state.answers[i] == question['correct']:
+            score += 1
     
-    if st.session_state.final_score == 100:
-        bonus = 500
-        st.balloons()
-        if "Perfect Century" not in st.session_state.achievements:
-            st.session_state.achievements.append("Perfect Century")
-    elif st.session_state.final_score >= 90:
-        bonus = 300
-    elif st.session_state.final_score >= 80:
-        bonus = 200
-    elif st.session_state.final_score >= 70:
-        bonus = 100
-    else:
-        bonus = 50
-    
-    # Speed Demon Achievement
-    if st.session_state.completion_time < 30 and st.session_state.final_score >= 80:
-        if "Speed Demon" not in st.session_state.achievements:
-            st.session_state.achievements.append("Speed Demon")
-        bonus += 150
-    
-    if "Century Club" not in st.session_state.achievements:
-        st.session_state.achievements.append("Century Club")
-    
-    total_xp = base_xp + bonus
-    award_xp(total_xp, f"Challenge: {st.session_state.final_score:.1f}%")
-    st.rerun()
+    st.session_state.final_score = score
+    st.session_state.show_results = True
 
-def display_results():
-    st.markdown("# 🎉 QUIZ 1 COMPLETE!")
-    score = st.session_state.final_score
-    correct = st.session_state.correct_count
+# --- Main Streamlit App Layout ---
+
+st.title("🏛️ Quiz 1: HIS 220 History of Michigan")
+st.markdown("---")
+
+# --- Sidebar (Navigation and Status) ---
+with st.sidebar:
+    st.header("Quiz Status")
     
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Score", f"{score:.1f}%", f"{correct}/100")
-    col2.metric("Time", f"{st.session_state.completion_time:.1f} min")
-    col3.metric("XP", st.session_state.total_xp)
-    col4.metric("Achievements", len(st.session_state.achievements))
-    
-    if score == 100:
-        st.success("🏆 PERFECT! MICHIGAN HISTORY MASTER!")
-        st.balloons()
-    elif score >= 90:
-        st.success("⭐ EXCELLENT! Exceptional knowledge!")
-    elif score >= 80:
-        st.info("📚 GOOD WORK! Strong understanding!")
+    if st.session_state.quiz_started and not st.session_state.quiz_completed:
+        current_q = st.session_state.current_question_index + 1
+        total_q = len(QUESTIONS)
+        st.metric("Question Progress", f"{current_q}/{total_q}")
+        st.metric("Total XP Earned", f"{st.session_state.total_xp} XP")
+        
+        # Timer Display (simple elapsed time)
+        if 'start_time' in st.session_state:
+            elapsed_time = time.time() - st.session_state.start_time
+            st.write(f"⏱️ Elapsed Time: **{int(elapsed_time // 60)}m {int(elapsed_time % 60)}s**")
+
+    elif st.session_state.quiz_completed:
+        st.subheader("Quiz Complete!")
+        st.metric("Final Score", f"{st.session_state.final_score}/{len(QUESTIONS)}")
+        st.metric("Total XP Earned", f"{st.session_state.total_xp} XP")
+        
     else:
-        st.info("📖 Keep studying!")
-    
-    with st.expander("🔍 Question Analysis"):
-        for i, q in enumerate(QUESTIONS):
-            user_ans = st.session_state.answers.get(i)
-            if user_ans == q["correct"]:
-                st.success(f"✅ Q{i+1}: CORRECT - {q['question']}")
-            else:
-                st.error(f"❌ Q{i+1}: INCORRECT - {q['question']}")
-            with st.expander(f"Context Q{i+1}"):
-                st.info(f"Correct: **{q['options'][q['correct']]}**")
-                st.markdown(q['explanation'])
-    
-    if st.session_state.achievements:
-        st.markdown("### 🏆 Achievements")
-        for ach in st.session_state.achievements:
-            st.success(f"🏆 {ach}")
-    
-    if st.button("🔄 RETAKE QUIZ"):
-        st.session_state.quiz_started = False
-        st.session_state.answers = {}
-        st.session_state.quiz_completed = False
-        st.session_state.total_xp = 0
-        st.session_state.achievements = []
-        st.rerun()
-    
-    # Hyperlink added after results
+        st.info("Press Start Quiz to begin the 100-question assessment.")
+
     st.markdown("---")
-    st.markdown(f"**<a href='https://his220-launcher.streamlit.app/' target='_self'>⬅️ Go back to Main Page/Quiz Launcher</a>**", unsafe_allow_html=True)
+    if st.button("Restart Quiz"):
+        start_quiz()
+        st.experimental_rerun()
 
 
-# --- Custom Styling (Kept simple) ---
-st.markdown("""
-<style>
-.stButton > button {
-    width: 100%;
-    border-radius: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    font-weight: bold;
-    padding: 1rem;
-}
-</style>
-""", unsafe_allow_html=True)
+# --- Main Content Area ---
 
-# --- Title Header (Updated to remove previous styling) ---
-st.markdown("""
-<div style='text-align: center; margin: 20px 0;'>
-    <h1>🏛️ QUIZ 1: HIS 220 HISTORY OF MICHIGAN</h1>
-    <h2>Source: "Michigan A History of the Wolverine State"</h2>
-</div>
-""", unsafe_allow_html=True)
-
-# --- Sidebar Status ---
-st.sidebar.markdown("# 🎯 Challenge Status")
-st.sidebar.metric("Total XP", st.session_state.total_xp)
-st.sidebar.metric("Achievements", len(st.session_state.achievements))
-
-if st.session_state.quiz_completed:
-    st.sidebar.metric("Final Score", f"{st.session_state.final_score:.1f}%")
+if not st.session_state.quiz_started:
+    st.markdown("""
+    This is a 100-question quiz covering the early history of Michigan, focusing on the French and early British periods, the fur trade, and Pontiac's Uprising. All questions and contextual explanations are derived directly from the introductory chapter of the textbook.
     
-# --- Main App Execution ---
-display_quiz()
+    **Instructions:**
+    1.  Select the best answer for each multiple-choice question.
+    2.  Once an answer is submitted, you cannot change it.
+    3.  You will earn 100 XP for every correct answer.
+    
+    Press the button below to begin.
+    """)
+    st.button("🚀 Start Quiz", on_click=start_quiz, type="primary")
+
+elif st.session_state.show_results:
+    st.subheader("🎉 Quiz Results")
+    st.success(f"You scored **{st.session_state.final_score} out of {len(QUESTIONS)}**!")
+    st.info(f"Total XP earned: **{st.session_state.total_xp} XP**")
+    st.write(f"Completion Time: **{int(st.session_state.completion_time // 60)} minutes and {int(st.session_state.completion_time % 60)} seconds**.")
+    
+    st.markdown("---")
+    st.subheader("Detailed Review")
+    
+    # Review section for all questions
+    for i, q in enumerate(QUESTIONS):
+        user_answer_index = st.session_state.answers.get(i)
+        correct_answer_index = q['correct']
+        
+        st.markdown(f"**Question {i+1}:** {q['question']}")
+        
+        # Determine styling based on correctness
+        is_correct = (user_answer_index == correct_answer_index)
+        
+        if is_correct:
+            st.markdown(f"<span style='color:green;'>**✅ Correct!**</span>", unsafe_allow_html=True)
+        elif user_answer_index is not None:
+            st.markdown(f"<span style='color:red;'>**❌ Incorrect.**</span> Your Answer: {q['options'][user_answer_index]}", unsafe_allow_html=True)
+        else:
+            st.warning("Skipped")
+
+        st.markdown(f"**Correct Answer:** {q['options'][correct_answer_index]}")
+        st.markdown(f"**Contextual Explanation:** {q['explanation']}")
+        st.markdown("---")
+
+else:
+    # --- Quiz in Progress ---
+    q_index = st.session_state.current_question_index
+    question_data = QUESTIONS[q_index]
+    
+    st.subheader(f"Question {q_index + 1} of {len(QUESTIONS)}")
+    st.markdown(f"**{question_data['question']}**")
+    
+    if q_index in st.session_state.answers:
+        # Show results for the question just answered
+        selected_option = st.session_state.answers[q_index]
+        
+        is_correct = (selected_option == question_data['correct'])
+        
+        if is_correct:
+            st.success(f"✅ Correct! You earned {st.session_state.xp_earned} XP.")
+        else:
+            st.error("❌ Incorrect.")
+
+        st.info(f"**Correct Answer:** {question_data['options'][question_data['correct']]}")
+        st.markdown(f"**Contextual Explanation:** {question_data['explanation']}")
+        
+        if st.session_state.current_question_index < len(QUESTIONS) - 1:
+            st.button("➡️ Next Question", on_click=lambda: st.session_state.update(current_question_index=st.session_state.current_question_index + 1), type="secondary")
+        else:
+            st.button("Finish Quiz & View Results", on_click=end_quiz, type="primary")
+
+    else:
+        # Display buttons for answers
+        selected_option = st.radio("Choose one option:", question_data['options'], index=None, key=f"q_{q_index}")
+        
+        if selected_option is not None:
+            # Find the index of the selected option
+            option_index = question_data['options'].index(selected_option)
+            st.button("Submit Answer", on_click=submit_answer, args=(q_index, option_index), type="primary")
