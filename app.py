@@ -32,6 +32,8 @@ if 'final_score' not in st.session_state:
     st.session_state.final_score = 0
 if 'completion_time' not in st.session_state:
     st.session_state.completion_time = 0
+if 'feedback_submitted' not in st.session_state: # New flag for immediate feedback
+    st.session_state.feedback_submitted = False
 
 # --- 100 Sensible Questions Based on the PDF Text ---
 QUESTIONS = [
@@ -167,11 +169,13 @@ def start_quiz():
     st.session_state.final_score = 0
     st.session_state.completion_time = 0
     st.session_state.show_results = False
+    st.session_state.feedback_submitted = False # Reset feedback
 
 # --- Function to Submit Answer ---
 def submit_answer(q_index, selected_option):
     if q_index not in st.session_state.answers:
         st.session_state.answers[q_index] = selected_option
+        st.session_state.feedback_submitted = True # Set flag to show feedback
         st.session_state.xp_earned = 0
         
         # Check if the answer is correct
@@ -185,12 +189,14 @@ def submit_answer(q_index, selected_option):
             st.session_state.xp_earned = xp_gain
         else:
             st.session_state.xp_earned = 0 # No XP for wrong answer
-            
-        # Move to the next question or complete the quiz
-        if st.session_state.current_question_index < len(QUESTIONS) - 1:
-            st.session_state.current_question_index += 1
-        else:
-            end_quiz()
+
+# --- Function to Move to Next Question ---
+def next_question():
+    st.session_state.feedback_submitted = False
+    if st.session_state.current_question_index < len(QUESTIONS) - 1:
+        st.session_state.current_question_index += 1
+    else:
+        end_quiz()
 
 # --- Function to Complete Quiz and Show Results ---
 def end_quiz():
@@ -248,7 +254,7 @@ if not st.session_state.quiz_started:
     
     **Instructions:**
     1.  Select the best answer for each multiple-choice question.
-    2.  Once an answer is submitted, you cannot change it.
+    2.  Upon submission, you will receive **immediate red/green feedback** and the contextual explanation.
     3.  You will earn 100 XP for every correct answer.
     
     Press the button below to begin.
@@ -264,7 +270,7 @@ elif st.session_state.show_results:
     st.markdown("---")
     st.subheader("Detailed Review")
     
-    # Review section for all questions
+    # Review section for all questions (unchanged)
     for i, q in enumerate(QUESTIONS):
         user_answer_index = st.session_state.answers.get(i)
         correct_answer_index = q['correct']
@@ -293,27 +299,49 @@ else:
     st.subheader(f"Question {q_index + 1} of {len(QUESTIONS)}")
     st.markdown(f"**{question_data['question']}**")
     
-    if q_index in st.session_state.answers:
-        # Show results for the question just answered
+    if st.session_state.feedback_submitted:
+        # Show feedback after submission
         selected_option = st.session_state.answers[q_index]
-        
         is_correct = (selected_option == question_data['correct'])
         
-        if is_correct:
-            st.success(f"✅ Correct! You earned {st.session_state.xp_earned} XP.")
-        else:
-            st.error("❌ Incorrect.")
+        # Display the selected radio options (disabled)
+        for idx, option in enumerate(question_data['options']):
+            if idx == selected_option:
+                # User's selection
+                if is_correct:
+                    st.markdown(f"<span style='color:green;'>**✅ {option} (Your selection)**</span>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<span style='color:red;'>**❌ {option} (Your selection)**</span>", unsafe_allow_html=True)
+            elif idx == question_data['correct']:
+                # Correct answer (highlighted in green if user was wrong)
+                if not is_correct:
+                    st.markdown(f"<span style='color:green;'>**✅ {option} (Correct Answer)**</span>", unsafe_allow_html=True)
+                else:
+                    # Simply display correct option if user got it right (already highlighted above)
+                    pass 
+            else:
+                st.write(option)
 
-        st.info(f"**Correct Answer:** {question_data['options'][question_data['correct']]}")
-        st.markdown(f"**Contextual Explanation:** {question_data['explanation']}")
+
+        # Big red/green banner feedback
+        st.markdown("---")
+        if is_correct:
+            st.success(f"**🎉 Correct!** You earned **{st.session_state.xp_earned} XP**.")
+        else:
+            st.error("**🛑 Incorrect.**")
+
+        # Contextual Explanation
+        st.info(f"**Contextual Explanation:** {question_data['explanation']}")
+        st.markdown("---")
         
+        # Next/Finish Button
         if st.session_state.current_question_index < len(QUESTIONS) - 1:
-            st.button("➡️ Next Question", on_click=lambda: st.session_state.update(current_question_index=st.session_state.current_question_index + 1), type="secondary")
+            st.button("➡️ Next Question", on_click=next_question, type="secondary")
         else:
             st.button("Finish Quiz & View Results", on_click=end_quiz, type="primary")
 
     else:
-        # Display buttons for answers
+        # Display options for selection
         selected_option = st.radio("Choose one option:", question_data['options'], index=None, key=f"q_{q_index}")
         
         if selected_option is not None:
