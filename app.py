@@ -34,7 +34,7 @@ if 'completion_time' not in st.session_state:
     st.session_state.completion_time = 0
 
 # --- 100 Sensible Questions Based on the PDF Text ---
-# (The 100-question list remains the same)
+# (The 100-question list remains the same for brevity)
 QUESTIONS = [
     {"question": "English observers *incorrectly* depicted French habitants as primarily interested in what activity?", "options": ["Working the fields", "Trading furs", "Playing", "Fishing"], "correct": 2, "explanation": "English and American observers inaccurately characterized the habitants as 'more interested in playing than in working.'"},
     {"question": "What kind of people were the French habitants described as in *actuality*?", "options": ["Irresponsible dreamers", "Hard-working, conservative folk", "Wealthy merchants", "Vagrant adventurers"], "correct": 1, "explanation": "The text states the habitants were, as a group, hard-working, conservative folk of good, solid peasant stock."},
@@ -128,7 +128,7 @@ QUESTIONS = [
     {"question": "The Maumee and Wabash river valleys were key to Detroit's fur trade in which direction?", "options": ["North", "South", "East", "West"], "correct": 1, "explanation": "To the south."},
     {"question": "What year marks the start of the French period peace discussed?", "options": ["1760", "1744", "1713", "1796"], "correct": 2, "explanation": "1713."},
     {"question": "The initial lack of British stability after 1760 contributed to what event?", "options": ["French return", "American Revolution", "Pontiac's Uprising", "Economic boom"], "correct": 2, "explanation": "Pontiac's Uprising."},
-    {"question": "What were the habitants, as a group, accurately described as being?", "options": ["Lazy", "Irresponsible", "Hard-working", "Playful"], "correct": 2, "explanation": "Hard-working."},
+    {"question": "What kind of folk were the habitants, as a group, accurately described as being?", "options": ["Lazy", "Irresponsible", "Hard-working", "Playful"], "correct": 2, "explanation": "Hard-working."},
     {"question": "The Jesuit missionary transferred his mission to what specific location?", "options": ["Fort Pitt", "Bois Blanc Island", "Fort Detroit", "Maumee Valley"], "correct": 1, "explanation": "Bois Blanc Island."},
     {"question": "What did the British distribute lavishly *before* the takeover?", "options": ["Taxes", "Presents", "Land deeds", "Furs"], "correct": 1, "explanation": "Presents."},
     {"question": "General Amherst's policy on misbehaving Indians was characterized by what?", "options": ["Leniency", "No leniency", "Compensation", "Warning"], "correct": 1, "explanation": "No leniency."},
@@ -151,7 +151,7 @@ QUESTIONS = [
     {"question": "The French ceded land located east of what river to Great Britain?", "options": ["Ohio", "Mississippi", "Maumee", "Wabash"], "correct": 1, "explanation": "Mississippi."},
     {"question": "What policy did General Amherst order rigid restrictions on the sale of?", "options": ["Furs", "Gifts", "Liquor", "Land"], "correct": 2, "explanation": "Liquor."},
     {"question": "The most formidable Indian uprising was caused by the British policy of:", "options": ["Generosity", "Retaliation", "Restriction", "Diplomacy"], "correct": 2, "explanation": "Restriction (cutting off gifts, restricting liquor)."},
-    {"question": "What was a consequence of the British distributing presents *before* 1760?", "options": ["French were pleased", "Western tribes gained favor", "Prices for furs dropped", "War broke out"], "correct": 1, "explanation": "Gained favor with western tribes."},
+    {"question": "What was a consequence of the British distributing presents *before* 1760?", "options": ["French were pleased", "Western tribes gained favor", "Prices for furs dropped", "War broke out"], "correct": 1, "explanation": "Western tribes gained favor."},
     {"question": "What kind of folk were the French habitants, according to the author?", "options": ["Lazy", "Irresponsible", "Hard-working", "Playful"], "correct": 2, "explanation": "Hard-working."},
     {"question": "The Huron mission moved to Bois Blanc Island in what year?", "options": ["1713", "1742", "1760", "1796"], "correct": 1, "explanation": "1742."},
     {"question": "Detroit's trade to the south focused on the valleys of which rivers?", "options": ["Ohio and Mississippi", "Maumee and Wabash", "Detroit and St. Lawrence", "Potomac and Hudson"], "correct": 1, "explanation": "Maumee and Wabash river valleys."},
@@ -195,14 +195,16 @@ def display_quiz():
         - **Up to 3,000+ XP possible**
         """)
 
-        # Resources Section (Added)
-        with st.expander("📚 Study Resources"):
+        # Resources Section (UPDATED)
+        with st.expander("📚 Study Resources (Textbook Links)"):
             st.markdown(f"""
-            This quiz is based on **HIS 220 Week 1-2** content from *Michigan A History of the Wolverine State* by Dunbar & May.
+            This quiz is based on **HIS 220 Week 1-2** content from **Michigan: A History of the Wolverine State** by Willis F. Dunbar and Georges May (Third Revised Edition, 1995).
 
-            **To find the answers:** Review the relevant sections of the textbook or the PDF text you uploaded concerning the **French colonial period, the fur trade, and Pontiac's Uprising.**
-            
-            *If available online, you may search for excerpts or digital copies of the **Third Revised Edition** of the book.*
+            To find the answers, review the chapters covering the **French colonial period, the fur trade, and Pontiac's Uprising.**
+
+            **Online Access:**
+            * **Borrow/Stream:** [Michigan: A History of the Wolverine State (Internet Archive)](https://archive.org/details/michiganhistoryo01dunb)
+            * **View Snippets:** [Michigan: A History of the Wolverine State (Google Books)](https://books.google.com/books/about/Michigan.html?id=HqGWEAnByeMC)
             """)
         
         if st.button("🚀 BEGIN QUIZ 1", key="start"):
