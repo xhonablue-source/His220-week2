@@ -1,6 +1,7 @@
 """
-HIS220: Michigan's First Residents & Colonial Era - Century Challenge
-100-Question Mastery Quiz - CognitiveCloud.ai
+Quiz 1: HIS 220 History of Michigan
+Based on "Michigan A History of the Wolverine State" 
+by Willis F. Dunbar and Georges May (Third Revised Edition)
 """
 
 import streamlit as st
@@ -10,7 +11,7 @@ from datetime import datetime
 
 # --- Streamlit Page Configuration ---
 st.set_page_config(
-    page_title="HIS220: Michigan Century Challenge",
+    page_title="Quiz 1: HIS220 History of Michigan",
     page_icon="🏛️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -33,6 +34,7 @@ if 'completion_time' not in st.session_state:
     st.session_state.completion_time = 0
 
 # --- 100 Sensible Questions Based on the PDF Text ---
+# (The 100-question list remains the same as it was previously validated)
 QUESTIONS = [
     {"question": "English observers *incorrectly* depicted French habitants as primarily interested in what activity?", "options": ["Working the fields", "Trading furs", "Playing", "Fishing"], "correct": 2, "explanation": "English and American observers inaccurately characterized the habitants as 'more interested in playing than in working.'"},
     {"question": "What kind of people were the French habitants described as in *actuality*?", "options": ["Irresponsible dreamers", "Hard-working, conservative folk", "Wealthy merchants", "Vagrant adventurers"], "correct": 1, "explanation": "The text states the habitants were, as a group, hard-working, conservative folk of good, solid peasant stock."},
@@ -166,8 +168,6 @@ QUESTIONS = [
 
 
 def award_xp(amount, reason=""):
-    # This function updates the XP counter which was noted as 'not currently working'
-    # It is working by manipulating st.session_state, which is the correct method in Streamlit.
     st.session_state.total_xp += amount
     milestones = [(500, "Rising Scholar"), (1000, "History Enthusiast"), (1500, "Michigan Expert"), (2000, "Colonial Master"), (2500, "Historical Analyst"), (3000, "ULTIMATE CHAMPION")]
     for threshold, title in milestones:
@@ -182,22 +182,19 @@ def award_xp(amount, reason=""):
 
 
 def display_quiz():
-    st.markdown("# 🏛️ Ultimate Michigan History Challenge")
+    st.markdown("# 🏛️ Quiz 1: HIS 220 History of Michigan")
     st.markdown("## 100 Questions - Immediate Feedback")
     
     if not st.session_state.quiz_started:
-        st.markdown("""
+        st.markdown(f"""
+        ### Source: *Michigan A History of the Wolverine State* by Dunbar & May
+        
         ### Challenge Overview:
-        - **100 Sequential Questions** based *only* on the provided text.
+        - **100 Sequential Questions** based on the provided text.
         - **Immediate color-coded feedback**
         - **Up to 3,000+ XP possible**
-        
-        ### XP System:
-        - **Base XP**: 15 XP per correct answer.
-        - **Bonus XP**: Earned for high completion scores.
-        - **Achievements**: Unlock milestones as your total XP grows.
         """)
-        if st.button("🚀 BEGIN CHALLENGE", key="start"):
+        if st.button("🚀 BEGIN QUIZ 1", key="start"):
             st.session_state.quiz_started = True
             st.session_state.start_time = time.time()
             st.rerun()
@@ -252,12 +249,11 @@ def display_quiz():
             try:
                 new_answer = q["options"].index(answer)
             except ValueError:
-                # Should not happen with valid Q/A structure
                 return
             
             if st.session_state.answers.get(i) != new_answer:
                 st.session_state.answers[i] = new_answer
-                time.sleep(0.01) # Small delay to avoid aggressive flashing
+                time.sleep(0.01)
                 st.rerun()
         
         # Show explanation
@@ -284,7 +280,7 @@ def process_results():
     st.session_state.quiz_completed = True
     
     # XP Calculation Logic
-    base_xp = correct * 15 # Base 15 XP per correct question
+    base_xp = correct * 15
     bonus = 0
     
     if st.session_state.final_score == 100:
@@ -315,7 +311,7 @@ def process_results():
     st.rerun()
 
 def display_results():
-    st.markdown("# 🎉 CHALLENGE COMPLETE!")
+    st.markdown("# 🎉 QUIZ 1 COMPLETE!")
     score = st.session_state.final_score
     correct = st.session_state.correct_count
     
@@ -355,8 +351,8 @@ def display_results():
         st.session_state.quiz_started = False
         st.session_state.answers = {}
         st.session_state.quiz_completed = False
-        st.session_state.total_xp = 0 # Reset XP for a fresh run
-        st.session_state.achievements = [] # Reset achievements
+        st.session_state.total_xp = 0
+        st.session_state.achievements = []
         st.rerun()
 
 # --- Custom Styling (The provided CSS is kept) ---
@@ -373,16 +369,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
+# --- Title Header (Updated) ---
+st.markdown(f"""
 <div style='background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);  
             color: white; padding: 30px; border-radius: 20px; text-align: center; margin: 20px 0;'>
-    <h1>🏛️ HIS220: MICHIGAN CENTURY CHALLENGE</h1>
-    <h2>100 Questions • Maximum XP • Legendary Achievements</h2>
-    <h3>CognitiveCloud.ai Learning Platform</h3>
+    <h1>🏛️ QUIZ 1: HIS 220 HISTORY OF MICHIGAN</h1>
+    <h2>Source: "Michigan A History of the Wolverine State"</h2>
+    <h3>100 Questions • Maximum XP • Legendary Achievements</h3>
 </div>
 """, unsafe_allow_html=True)
 
-# --- Sidebar Status (The XP counter is displayed here) ---
+# --- Sidebar Status ---
 st.sidebar.markdown("# 🎯 Challenge Status")
 st.sidebar.metric("Total XP", st.session_state.total_xp)
 st.sidebar.metric("Achievements", len(st.session_state.achievements))
